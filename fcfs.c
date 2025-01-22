@@ -27,12 +27,12 @@ void fcfs(Process processes[], int numProcesses) {
         }
 
         // Fill the timeline with the process name during its execution (up to 100 quanta)
-        for (int t = 0; t < processes[i].runtime && currentTime + t < 100; t++) {
+        for (int t = 0; t < processes[i].runTime && currentTime + t < 100; t++) {
             timeline[currentTime + t] = processes[i].name;
         }
 
         // Update the current time after the process completes or hits 100 quanta
-        currentTime += processes[i].runtime;
+        currentTime += processes[i].runTime;
 
         if (currentTime > 100) {
             processes[i].completionTime = 100; // Clamp completion time to 100
@@ -43,7 +43,7 @@ void fcfs(Process processes[], int numProcesses) {
 
         // Calculate Turnaround Time, Waiting Time, and Response Time
         int turnaroundTime = processes[i].completionTime - processes[i].arrivalTime;
-        int waitingTime = turnaroundTime - processes[i].runtime;
+        int waitingTime = turnaroundTime - processes[i].runTime;
         int responseTime = processes[i].startTime - processes[i].arrivalTime;
 
         // Update totals for averages
@@ -53,7 +53,7 @@ void fcfs(Process processes[], int numProcesses) {
 
         // Print individual process metrics
         printf("Process %c: Arrival Time = %d, Burst Time = %d, Turnaround Time = %d, Waiting Time = %d, Response Time = %d\n",
-               processes[i].name, (int)processes[i].arrivalTime, processes[i].runtime, turnaroundTime, waitingTime, responseTime);
+               processes[i].name, (int)processes[i].arrivalTime, processes[i].runTime, turnaroundTime, waitingTime, responseTime);
     }
 
     // Print the time chart of execution
@@ -91,7 +91,7 @@ int main() {
     printf("\nGenerated Processes:\n");
     printf("Name\tArrival Time\tBurst Time\tPriority\n");
     for (int i = 0; i < numProcesses; i++) {
-        printf("%c\t%.2f\t\t%d\t\t%d\n", processes[i].name, processes[i].arrivalTime, processes[i].runtime, processes[i].priority);
+        printf("%c\t%.2f\t\t%d\t\t%d\n", processes[i].name, processes[i].arrivalTime, processes[i].runTime, processes[i].priority);
     }
 
     // Run FCFS scheduling
