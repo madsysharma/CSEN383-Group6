@@ -37,6 +37,10 @@ void fcfs(Process processes[], int numProcesses) {
         int waitingTime = turnaroundTime - processes[i].burstTime;
         int responseTime = (int)(processes[i].startTime - processes[i].arrivalTime + 0.5); // Rounding for precision
 
+        // Ensure no negative times
+        if (waitingTime < 0) waitingTime = 0;
+        if (responseTime < 0) responseTime = 0;
+
         // Update totals for averages
         totalTurnaroundTime += turnaroundTime;
         totalWaitingTime += waitingTime;
@@ -55,7 +59,7 @@ void fcfs(Process processes[], int numProcesses) {
     printf("\n");
 
     // Calculate and print average metrics
-    float throughput = (float)numProcesses / currentTime; // Processes completed per unit time
+    float throughput = (float)numProcesses / (currentTime - (int)processes[0].arrivalTime); // Processes completed per unit time
     printf("\nAverage Turnaround Time: %.2f\n", totalTurnaroundTime / numProcesses);
     printf("Average Waiting Time: %.2f\n", totalWaitingTime / numProcesses);
     printf("Average Response Time: %.2f\n", totalResponseTime / numProcesses);
