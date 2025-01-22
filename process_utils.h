@@ -6,10 +6,10 @@
 // Define the Process structure
 typedef struct Process {
     char name;         // Process name (e.g., A, B, C...)
-    float arrivalTime; // Arrival time (0-99)
-    int burstTime;     // Burst time (1-10)
+    int arrivalTime;   // Arrival time (0-99)
+    int runtime;       // Total runtime (1-10)
     int priority;      // Priority (1-4, 1 is highest)
-    int remainingTime; // Remaining burst time
+    int remainingTime; // Remaining runtime
     int startTime;     // Time when the process first gets CPU
     int completionTime;// Time when the process completes
 } Process;
@@ -20,4 +20,3 @@ int compareArrivalTime(const void *a, const void *b);
 Process* setupProcesses(int numProcesses);
 
 #endif
-
