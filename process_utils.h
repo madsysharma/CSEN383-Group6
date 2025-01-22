@@ -7,9 +7,9 @@
 typedef struct Process {
     char name;         // Process name (e.g., A, B, C...)
     int arrivalTime;   // Arrival time (0-99)
-    int runtime;       // Total runtime (1-10)
+    int runTime;       // Total runTime (1-10)
     int priority;      // Priority (1-4, 1 is highest)
-    int remainingTime; // Remaining runtime
+    int remainingTime; // Remaining runTime
     int startTime;     // Time when the process first gets CPU
     int completionTime;// Time when the process completes
 } Process;
