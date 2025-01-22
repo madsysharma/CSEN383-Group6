@@ -8,14 +8,13 @@ void generateProcesses(Process processes[], int numProcesses) {
     for (int i = 0; i < numProcesses; i++) {
         processes[i].name = 'A' + i;                   // Assign a name (A, B, C, ...)
         processes[i].arrivalTime = rand() % 100;       // Random integer [0, 99]
-        processes[i].burstTime = rand() % 10 + 1;      // Random integer [1, 10]
+        processes[i].runtime = rand() % 10 + 1;        // Random integer [1, 10]
         processes[i].priority = rand() % 4 + 1;        // Random integer [1, 4]
-        processes[i].remainingTime = processes[i].burstTime; // Initialize remaining time
+        processes[i].remainingTime = processes[i].runtime; // Initialize remaining runtime
         processes[i].startTime = -1;                  // Not yet started
         processes[i].completionTime = 0;              // Not yet completed
     }
 }
-
 
 // Function to sort processes by arrival time
 int compareArrivalTime(const void *a, const void *b) {
