@@ -19,4 +19,3 @@
   ```bash
   gcc -o fcfs_scheduler fcfs.c process_utils.c
   ./fcfs_scheduler
-
