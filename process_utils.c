@@ -1,37 +1,79 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "process_utils.h"
 
-// Function to generate random processes
-void generateProcesses(Process processes[], int numProcesses) {
-    srand(0); // Seed the random number generator for reproducibility
+// Generate random processes
+void generateProcesses(Process* processes, int numProcesses) {
+    char processName = 'A';
+    srand(0); // Fixed random seed for debugging consistency
+
     for (int i = 0; i < numProcesses; i++) {
-        processes[i].name = 'A' + i;                   // Assign a name (A, B, C, ...)
-        processes[i].arrivalTime = rand() % 100;       // Random integer [0, 99]
-        processes[i].runTime = rand() % 10 + 1;        // Random integer [1, 10]
-        processes[i].priority = rand() % 4 + 1;        // Random integer [1, 4]
-        processes[i].remainingTime = processes[i].runTime; // Initialize remaining runTime
+        processes[i].name = processName++;
+        processes[i].arrivalTime = rand() % 100;       // Random arrival time (0–99)
+        processes[i].runtime = (rand() % 10) + 1;     // Random runtime (1–10)
+        processes[i].priority = (rand() % 4) + 1;     // Random priority (1–4)
         processes[i].startTime = -1;                  // Not yet started
-        processes[i].completionTime = 0;              // Not yet completed
+        processes[i].completionTime = 0;             // Not yet completed
+    }
+
+    // Sort processes by arrival time
+    qsort(processes, numProcesses, sizeof(Process), compareByArrivalTime);
+}
+
+// Comparison function for qsort (sort by arrival time)
+int compareByArrivalTime(const void* a, const void* b) {
+    const Process* p1 = (const Process*)a;
+    const Process* p2 = (const Process*)b;
+    return p1->arrivalTime - p2->arrivalTime;
+}
+
+// Create a new timeline
+Timeline* createTimeline(int initialCapacity) {
+    Timeline* t = (Timeline*)malloc(sizeof(Timeline));
+    t->timeline = (char*)calloc(initialCapacity, sizeof(char));
+    t->capacity = initialCapacity;
+    t->size = 0;
+    return t;
+}
+
+// Resize the timeline if more capacity is needed
+void resizeTimeline(Timeline* t, int requiredCapacity) {
+    if (requiredCapacity > t->capacity) {
+        t->capacity = requiredCapacity * 2; // Double the capacity
+        t->timeline = (char*)realloc(t->timeline, t->capacity * sizeof(char));
+        if (!t->timeline) {
+            fprintf(stderr, "Error reallocating timeline memory!\n");
+            exit(EXIT_FAILURE);
+        }
     }
 }
 
-// Function to sort processes by arrival time
-int compareArrivalTime(const void *a, const void *b) {
-    Process *p1 = (Process *)a;
-    Process *p2 = (Process *)b;
-    return (p1->arrivalTime > p2->arrivalTime) - (p1->arrivalTime < p2->arrivalTime);
-}
+// Update the timeline with a process's execution
+void updateTimeline(Timeline* t, int startTime, int duration, char processName) {
+    int endTime = startTime + duration;
+    resizeTimeline(t, endTime);
 
-// Function to setup processes (generate and sort by arrival time)
-Process* setupProcesses(int numProcesses) {
-    Process* processes = (Process*)malloc(numProcesses * sizeof(Process));
-    if (!processes) {
-        printf("Memory allocation failed!\n");
-        exit(1);
+    for (int i = startTime; i < endTime; i++) {
+        t->timeline[i] = processName;
     }
-    generateProcesses(processes, numProcesses);
-    qsort(processes, numProcesses, sizeof(Process), compareArrivalTime); // Sort by arrival time
-    return processes;
+
+    if (endTime > t->size) {
+        t->size = endTime;
+    }
 }
 
+// Print the timeline
+void printTimeline(Timeline* t) {
+    printf("\nTime Chart (total %d quanta): ", t->size);
+    for (int i = 0; i < t->size; i++) {
+        printf("%c", t->timeline[i] ? t->timeline[i] : '-');
+    }
+    printf("\n");
+}
+
+// Free timeline memory
+void freeTimeline(Timeline* t) {
+    free(t->timeline);
+    free(t);
+}
