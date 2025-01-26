@@ -1,136 +1,93 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "process_utils.h"
+#include "queue_utils.h"
 
-// Round Robin Scheduling
-void rr(Process processes[], int numProcesses) {
-    int currentTime = 0;
-    int completedProcesses = 0;
+void roundRobin(Process processes[], int numProcesses, int quantum) {
+    int currTime = 0, completedProcesses = 0;
     float totalTurnaroundTime = 0, totalWaitingTime = 0, totalResponseTime = 0;
-    int timelineSize = 100; // Initial size of the timeline
-    char *timeline = (char *)calloc(timelineSize, sizeof(char)); // Dynamically allocate memory for the timeline
+    Timeline* t = createTimeline(100);
+    Queue* readyQueue = createQueue(numProcesses);
 
-    if (!timeline) {
-        printf("Memory allocation failed for timeline.\n");
-        return;
-    } 
+    printf("\nRound Robin Scheduling (Quantum = %d):\n", quantum);
 
-    printf("\nRound Robin Scheduling (Time Quantum = 1):\n");
-
-    // Initialize a queue for process indices
-    int queue[MAX_PROCESSES], front = 0, rear = 0;
-
-    while (completedProcesses < numProcesses || currentTime < 100) {
-        // Grow the timeline dynamically
-        if (currentTime >= timelineSize) {
-            timelineSize *= 2; // Double the size
-            timeline = (char *)realloc(timeline, timelineSize * sizeof(char));
-            if (!timeline) {
-                printf("Memory reallocation failed.\n");
-                return;
-            }
-            printf("Timeline size is updated to : %d\n", timelineSize);
-        }
-
-        // Add newly arrived processes at the current time to the queue
+    while (completedProcesses < numProcesses) {
+        // Add processes arriving at the current time to the ready queue
         for (int i = 0; i < numProcesses; i++) {
-            if (processes[i].arrivalTime == currentTime) {
-                queue[rear++] = i;
+            if (processes[i].arrivalTime == currTime && processes[i].remainingTime > 0) {
+                enqueue(readyQueue, processes[i]);
             }
         }
-        if (front == rear) {
-            // CPU idle if no processes are in the queue
-            timeline[currentTime++] = '-';
-            continue;
-        }
 
-        // Dequeue the next process
-        int index = queue[front++];
+        if (!isQueueEmpty(readyQueue)) {
+            // Fetch the next process from the ready queue
+            Process currProcess = dequeue(readyQueue);
 
-        // If the process hasn't started yet, set its start time
-        if (processes[index].startTime == -1) {
-            processes[index].startTime = currentTime;
-        }
+            if (currProcess.startTime == -1) {
+                currProcess.startTime = currTime; // Mark the process as started
+            }
 
-        // Execute the process for 1 quantum
-        timeline[currentTime++] = processes[index].name;
-        processes[index].remainingTime -= 1;
+            // Execute the process for one quantum
+            updateTimeline(t, currTime, 1, currProcess.name);
 
-        // If the process is complete
-        if (processes[index].remainingTime == 0) {
-            processes[index].completionTime = currentTime;
-            completedProcesses++;
+            currTime++;
+            currProcess.remainingTime--;
 
-            // Calculate metrics for the process
-            int turnaroundTime = processes[index].completionTime - processes[index].arrivalTime;
-            int waitingTime = turnaroundTime - processes[index].runTime;
-            int responseTime = processes[index].startTime - processes[index].arrivalTime;
+            if (currProcess.remainingTime == 0) {
+                // Process has completed
+                completedProcesses++;
+                currProcess.completionTime = currTime;
 
-            totalTurnaroundTime += turnaroundTime;
-            totalWaitingTime += waitingTime;
-            totalResponseTime += responseTime;
+                int tat = currProcess.completionTime - currProcess.arrivalTime;
+                int rt = currProcess.startTime - currProcess.arrivalTime;
+                int wt = tat - currProcess.runtime;
 
-            printf("Process %c: Arrival Time = %d, Run Time = %d, Turnaround Time = %d, Waiting Time = %d, Response Time = %d\n",
-                   processes[index].name, processes[index].arrivalTime, processes[index].runTime,
-                   turnaroundTime, waitingTime, responseTime);
+                totalTurnaroundTime += tat;
+                totalResponseTime += rt;
+                totalWaitingTime += wt;
+
+                printf("\nProcess %c: Arrival Time = %d, Runtime = %d, Turnaround Time = %d, Waiting Time = %d, Response Time = %d\n",
+                       currProcess.name, currProcess.arrivalTime, currProcess.runtime, tat, wt, rt);
+            } else {
+                // Process has not completed; re-add it to the ready queue
+                enqueue(readyQueue, currProcess);
+            }
         } else {
-            // Re-enqueue the process if not complete
-            queue[rear++] = index;
+            // CPU is idle
+            updateTimeline(t, currTime, 1, '-');
+            currTime++;
         }
     }
 
-    // Print the time chart of execution
-    printf("\nTime Chart (first 100 quanta or till the last process completes):\n");
-    for (int t = 0; t < currentTime; t += 20) {
-        // Print the time numbers
-        for (int i = t; i < t + 20 && i < currentTime; i++) {
-            printf("%3d ", i); // Print time indices (1-based indexing)
-        }
-        printf("\n");
-        // Print the corresponding processes or idle times
-        for (int i = t; i < t + 20 && i < currentTime; i++) {
-            printf(" %2c ", timeline[i] ? timeline[i] : '-');
-        }
-        printf("\n\n");
-    }
+    printTimeline(t);
 
-
-    // Calculate and print average metrics
+    // Display averages
     printf("\nAverage Turnaround Time: %.2f\n", totalTurnaroundTime / numProcesses);
     printf("Average Waiting Time: %.2f\n", totalWaitingTime / numProcesses);
     printf("Average Response Time: %.2f\n", totalResponseTime / numProcesses);
-    printf("Throughput: %.3f processes/unit time\n", (float)completedProcesses / currentTime);
+    printf("Throughput: %.2f processes/unit time\n", (float)numProcesses / t->size);
 
-    free(timeline);
+    // Free allocated resources
+    freeTimeline(t);
+    freeQueue(readyQueue);
 }
 
 int main() {
     int numProcesses;
-
-    // Input: Number of processes
     printf("Enter the number of processes to simulate: ");
     scanf("%d", &numProcesses);
 
-    if (numProcesses > MAX_PROCESSES) {
-        printf("Number of processes cannot exceed %d.\n", MAX_PROCESSES);
-        return 1;
-    }
+    Process* processes = (Process*)malloc(numProcesses * sizeof(Process));
+    generateProcesses(processes, numProcesses);
 
-    // Create and setup processes
-    Process* processes = setupProcesses(numProcesses);
-
-    // Display generated processes
     printf("\nGenerated Processes:\n");
     printf("Name\tArrival Time\tRun Time\tPriority\n");
     for (int i = 0; i < numProcesses; i++) {
-        printf("%c\t%d\t\t%d\t\t%d\n", processes[i].name, processes[i].arrivalTime, processes[i].runTime, processes[i].priority);
+        printf("%c\t%d\t\t%d\t\t%d\n", processes[i].name, processes[i].arrivalTime, processes[i].runtime, processes[i].priority);
     }
 
-    // Run Round Robin scheduling
-    rr(processes, numProcesses);
+    roundRobin(processes, numProcesses, 1);
 
-    // Free allocated memory
     free(processes);
-
     return 0;
 }
