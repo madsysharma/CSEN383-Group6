@@ -10,9 +10,15 @@
 3. `fcfs.c`:
    - Implements the First-Come First-Served (FCFS) scheduling algorithm.
 
+4. 'rr.c':
+   - Implements the Round Robin (RR) scheduling algorithm.
+  
+5. 'srtf.c':
+   - Implements the Shortest Remaining Time First (SRTF) scheduling algorithm.
+
 ## How to Use:
-- Include `process_utils.h` in your scheduling algorithm file.
-- Link `process_utils.c` when compiling your algorithm.
+- Include `process_utils.h` and 'queue_utils.h' in your scheduling algorithm file.
+- Link `process_utils.c` and 'queue_utils.h' when compiling your algorithm.
 
 ## Compilation Instructions:
 - For FCFS:
