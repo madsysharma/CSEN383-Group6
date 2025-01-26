@@ -113,7 +113,7 @@ void srtf(Process processes[], int numProcesses)
     			totalWaitingTime += wt;
 
     			// Print the individual metrics
-            	printf("\nProcess %c: Arrival Time = %d, Runtime = %d, Turnaround Time = %d, Waiting Time = %d, Response Time = %d\n", srtfProcess->name, srtfProcess->arrivalTime, srtfProcess->runtime, tat, wt, rt);
+            	        printf("\nProcess %c: Arrival Time = %d, Runtime = %d, Turnaround Time = %d, Waiting Time = %d, Response Time = %d\n", srtfProcess->name, srtfProcess->arrivalTime, srtfProcess->runtime, tat, wt, rt);
 
     			//Dequeue the completed process
     			removeFromQueue(readyQueue, srtfProcess);
