@@ -18,7 +18,7 @@
 
 ## How to Use:
 - Include `process_utils.h` and `queue_utils.h` in your scheduling algorithm file.
-- Link `process_utils.c` and `queue_utils.h` when compiling your algorithm.
+- Link `process_utils.c` and `queue_utils.c` when compiling your algorithm.
 
 ## Compilation Instructions:
 - For FCFS:
