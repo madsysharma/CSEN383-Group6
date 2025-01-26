@@ -7,8 +7,9 @@ typedef struct Process {
     int arrivalTime;   // Arrival time
     int runtime;       // Total runtime
     int priority;      // Priority level
-    int startTime;     // Time process first gets the CPU
-    int completionTime;// Time process finishes execution
+    int startTime;     // Time at which the process first gets the CPU
+    int completionTime;// Time at which the process finishes execution
+    int remainingTime; // Time remaining for process to finish execution
 } Process;
 
 // Timeline structure

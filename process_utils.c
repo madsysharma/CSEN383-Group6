@@ -15,6 +15,13 @@ void generateProcesses(Process* processes, int numProcesses) {
         processes[i].priority = (rand() % 4) + 1;     // Random priority (1–4)
         processes[i].startTime = -1;                  // Not yet started
         processes[i].completionTime = 0;             // Not yet completed
+        processes[i].remainingTime = processes[i].runtime;
+
+        if (processes[i].runtime <= 0) 
+        {
+            fprintf(stderr, "Invalid runtime for process %c\n", processes[i].name);
+            exit(EXIT_FAILURE);
+        }
     }
 
     // Sort processes by arrival time
@@ -39,7 +46,13 @@ Timeline* createTimeline(int initialCapacity) {
 
 // Resize the timeline if more capacity is needed
 void resizeTimeline(Timeline* t, int requiredCapacity) {
+    //printf("Resizing timeline: Current capacity = %d, Required capacity = %d\n", t->capacity, requiredCapacity);
     if (requiredCapacity > t->capacity) {
+        if(requiredCapacity <= 0)
+        {
+            fprintf(stderr, "Invalid timeline capacity requested!\n");
+            exit(EXIT_FAILURE);
+        }
         t->capacity = requiredCapacity * 2; // Double the capacity
         t->timeline = (char*)realloc(t->timeline, t->capacity * sizeof(char));
         if (!t->timeline) {
@@ -51,6 +64,10 @@ void resizeTimeline(Timeline* t, int requiredCapacity) {
 
 // Update the timeline with a process's execution
 void updateTimeline(Timeline* t, int startTime, int duration, char processName) {
+     if (startTime < 0 || duration <= 0) {
+        fprintf(stderr, "Invalid start time or duration in updateTimeline!\n");
+        exit(EXIT_FAILURE);
+    }
     int endTime = startTime + duration;
     resizeTimeline(t, endTime);
 
