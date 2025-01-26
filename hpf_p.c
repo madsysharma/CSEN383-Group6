@@ -4,7 +4,7 @@
 #include "process_utils.h"
 #include "queue_utils.h"
 
-#define NUM_PROCESSES 20
+#define NUM_PROCESSES 25
 #define NUM_RUNS 1
 #define MAX_TIME 9999
 
