@@ -1,77 +1,53 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "process_utils.h"
+#include "queue_utils.h"
 
-// First-Come First-Served (FCFS) Scheduling
-void fcfs(Process* processes, int numProcesses) {
-    int currentTime = 0;
-    float totalTurnaroundTime = 0, totalWaitingTime = 0, totalResponseTime = 0;
-
-    // Create the dynamic timeline
-    Timeline* t = createTimeline(100);
-
-    printf("\nFirst-Come First-Served (FCFS) Scheduling:\n");
-
-    for (int i = 0; i < numProcesses; i++) {
-        // Handle idle CPU time
-        if (currentTime < processes[i].arrivalTime) {
-            updateTimeline(t, currentTime, processes[i].arrivalTime - currentTime, '-');
-            currentTime = processes[i].arrivalTime;
-        }
-
-        // Execute the process
-        processes[i].startTime = currentTime;
-        updateTimeline(t, currentTime, processes[i].runtime, processes[i].name);
-
-        // Update metrics
-        currentTime += processes[i].runtime;
-        processes[i].completionTime = currentTime;
-
-        int turnaroundTime = processes[i].completionTime - processes[i].arrivalTime;
-        int waitingTime = turnaroundTime - processes[i].runtime;
-        int responseTime = processes[i].startTime - processes[i].arrivalTime;
-
-        totalTurnaroundTime += turnaroundTime;
-        totalWaitingTime += waitingTime;
-        totalResponseTime += responseTime;
-
-        // Print individual metrics
-        printf("Process %c: Arrival Time = %d, Runtime = %d, Turnaround Time = %d, Waiting Time = %d, Response Time = %d\n",
-               processes[i].name, processes[i].arrivalTime, processes[i].runtime,
-               turnaroundTime, waitingTime, responseTime);
-    }
-
-    // Print the timeline
-    printTimeline(t);
-
-    // Print averages
-    printf("\nAverage Turnaround Time: %.2f\n", totalTurnaroundTime / numProcesses);
-    printf("Average Waiting Time: %.2f\n", totalWaitingTime / numProcesses);
-    printf("Average Response Time: %.2f\n", totalResponseTime / numProcesses);
-    printf("Throughput: %.2f processes/unit time\n", (float)numProcesses / t->size);
-
-    // Free timeline
-    freeTimeline(t);
+// Create a new queue
+Queue* createQueue(int capacity) {
+    Queue* queue = (Queue*)malloc(sizeof(Queue));
+    queue->capacity = capacity;
+    queue->front = 0;
+    queue->rear = -1;
+    queue->size = 0;
+    queue->processes = (Process*)malloc(capacity * sizeof(Process));
+    return queue;
 }
 
-int main() {
-    int numProcesses;
+// Check if the queue is full
+int isQueueFull(Queue* queue) {
+    return queue->size == queue->capacity;
+}
 
-    printf("Enter the number of processes to simulate: ");
-    scanf("%d", &numProcesses);
+// Check if the queue is empty
+int isQueueEmpty(Queue* queue) {
+    return queue->size == 0;
+}
 
-    Process* processes = (Process*)malloc(numProcesses * sizeof(Process));
-    generateProcesses(processes, numProcesses);
-
-    printf("\nGenerated Processes:\n");
-    printf("Name\tArrival Time\tRuntime\tPriority\n");
-    for (int i = 0; i < numProcesses; i++) {
-        printf("%c\t%d\t\t%d\t%d\n", processes[i].name, processes[i].arrivalTime,
-               processes[i].runtime, processes[i].priority);
+// Enqueue a process into the queue
+void enqueue(Queue* queue, Process process) {
+    if (isQueueFull(queue)) {
+        printf("Queue is full. Cannot enqueue process %c.\n", process.name);
+        return;
     }
+    queue->rear = (queue->rear + 1) % queue->capacity;
+    queue->processes[queue->rear] = process;
+    queue->size++;
+}
 
-    fcfs(processes, numProcesses);
+// Dequeue a process from the queue
+Process dequeue(Queue* queue) {
+    if (isQueueEmpty(queue)) {
+        Process emptyProcess = {'\0', 0, 0, 0, -1, 0};
+        return emptyProcess;
+    }
+    Process process = queue->processes[queue->front];
+    queue->front = (queue->front + 1) % queue->capacity;
+    queue->size--;
+    return process;
+}
 
-    free(processes);
-    return 0;
+// Free the queue memory
+void freeQueue(Queue* queue) {
+    free(queue->processes);
+    free(queue);
 }
