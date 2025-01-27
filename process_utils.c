@@ -6,7 +6,7 @@
 // Generate random processes
 void generateProcesses(Process* processes, int numProcesses) {
     char processName = 'A';
-    srand(0); // Fixed random seed for debugging consistency
+    // srand(0); // Fixed random seed for debugging consistency
 
     for (int i = 0; i < numProcesses; i++) {
         processes[i].name = processName++;
