@@ -25,20 +25,17 @@
 8. `sjf.c`:
    - Implements the Shortest Job First (SJF) scheduling algorithm, handling time chart visualization and metrics calculation.
 
+9. `simulation.h`:
+    - Contains declarations of all scheduling algorithms and their helper functions
+  
+10. `main.c`:
+    - The main program where all the scheduling algorithms are run for 5 trials.
+
 ## How to Use:
-- Include `process_utils.h` and `queue_utils.h` in your scheduling algorithm file.
-- Link `process_utils.c` and `queue_utils.c` when compiling your algorithm.
+- Include `process_utils.h`,`queue_utils.h` and `simulation.h` in your scheduling algorithm file.
+- Link all files with `.c` during compilation.
 
 ## Compilation Instructions:
-- For FCFS:
   ```bash
-  gcc -o fcfs_scheduler fcfs.c process_utils.c
-  ./fcfs_scheduler
-- For SJF:
-  ```bash
-  gcc -o sjf_scheduler sjf.c process_utils.c queue_utils.c -lm
-  ./sjf_scheduler
-- For SRTF:
-  ```bash
-  gcc -o srtf_scheduler srtf.c process_utils.c queue_utils.c -lm
-  ./srtf_scheduler
+  gcc -o main *.c
+  ./main
