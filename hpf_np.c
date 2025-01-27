@@ -5,7 +5,7 @@
 #include "queue_utils.h"
 
 #define NUM_PROCESSES 25
-#define NUM_RUNS 1
+#define NUM_RUNS 5
 #define MAX_TIME 9999
 
 static int waitingInLevel[1000]; // Track how long a process has waited at its current level
