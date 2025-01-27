@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <string.h>
+#include <time.h>
 #include "process_utils.h"
 #include "queue_utils.h"
 
@@ -55,7 +56,7 @@ void srtf(Process processes[], int numProcesses)
     while(completedProcesses < numProcesses)
     {
     	// Enqueue the newly-arrived processes
-    	for(int i=0;i<numProcesses;i++)
+    	for (int i = 0; i < numProcesses; i++)
     	{
     		if(processes[i].arrivalTime == currTime && processes[i].remainingTime > 0)
     		{
@@ -80,7 +81,7 @@ void srtf(Process processes[], int numProcesses)
             }
 
             int idleTime = (nextArrivalTime == INT_MAX) ? 1 : nextArrivalTime - currTime;
-            idleTime = (idleTime > 2) ? 2 : idleTime;  // Keep the maximum idle time to 2 units
+            idleTime = (idleTime > 2) ? 2 : idleTime;  // Keep the maximum idle time to 2 quanta
             updateTimeline(t, currTime, idleTime, '-');
             currTime += idleTime;
     	}
@@ -138,27 +139,34 @@ void srtf(Process processes[], int numProcesses)
 int main() 
 {
     int numProcesses;
+    srand(time(NULL));
 
     // Input: Number of processes
     printf("Enter the number of processes to simulate: ");
     scanf("%d", &numProcesses);
 
-    // Create and setup processes
-    Process* processes = (Process*)malloc(numProcesses * sizeof(Process));
-    generateProcesses(processes, numProcesses);
+    int runs = 5;
+    for (int i = 0; i < runs; i++)
+    {
+        printf("\nRUN %d:\n", i+1);
+        // Create and setup processes
+        Process* processes = (Process*)malloc(numProcesses * sizeof(Process));
+        generateProcesses(processes, numProcesses);
 
-    // Display generated processes
-    printf("\nGenerated Processes:\n");
-    printf("Name\tArrival Time\tRun Time\tPriority\n");
-    for (int i = 0; i < numProcesses; i++) {
-        printf("%c\t%d\t\t%d\t\t%d\n", processes[i].name, processes[i].arrivalTime, processes[i].runtime, processes[i].priority);
+        // Display generated processes
+        printf("\nGenerated Processes:\n");
+        printf("Name\tArrival Time\tRun Time\tPriority\n");
+        for (int j = 0; j < numProcesses; j++) 
+        {
+            printf("%c\t%d\t\t%d\t\t%d\n", processes[j].name, processes[j].arrivalTime, processes[j].runtime, processes[j].priority);
+        }
+
+        // Run Shortest Remaining Time First scheduling
+        srtf(processes, numProcesses);
+
+        // Free allocated memory
+        free(processes);
+        printf("\n");
     }
-
-    // Run Shortest Remaining Time First scheduling
-    srtf(processes, numProcesses);
-
-    // Free allocated memory
-    free(processes);
-
     return 0;
 }
