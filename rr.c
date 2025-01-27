@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "process_utils.h"
 #include "queue_utils.h"
+#include "simulation.h"
 
 void roundRobin(Process processes[], int numProcesses, float* avgTurnaroundTime, float* avgWaitingTime, float* avgResponseTime, float* throughput) {
     int currTime = 0, completedProcesses = 0;
@@ -76,46 +77,4 @@ void roundRobin(Process processes[], int numProcesses, float* avgTurnaroundTime,
     // Free allocated resources
     freeTimeline(t);
     freeQueue(readyQueue);
-}
-
-int main() {
-    int numProcesses, runs = 5;
-    printf("Enter the number of processes to simulate: ");
-    scanf("%d", &numProcesses);
-
-    // Variables to store aggregated averages
-    float totalAvgTurnaroundTime = 0, totalAvgWaitingTime = 0, totalAvgResponseTime = 0, totalThroughput = 0;
-
-    for (int i = 0; i < runs; i++) { 
-        Process* processes = (Process*)malloc(numProcesses * sizeof(Process));
-        generateProcesses(processes, numProcesses);
-
-         printf("\nRun %d: Generated Processes:\n", i + 1);
-        printf("Name\tArrival Time\tRun Time\tPriority\n");
-        for (int i = 0; i < numProcesses; i++) {
-            printf("%c\t%d\t\t%d\t\t%d\n", processes[i].name, processes[i].arrivalTime, processes[i].runtime, processes[i].priority);
-        }
-
-        // Variables to store averages for this run
-        float avgTurnaroundTime = 0, avgWaitingTime = 0, avgResponseTime = 0, throughput = 0;
-
-        // Run Round Robin scheduling
-        roundRobin(processes, numProcesses, &avgTurnaroundTime, &avgWaitingTime, &avgResponseTime, &throughput);
-
-        // Aggregate averages
-        totalAvgTurnaroundTime += avgTurnaroundTime;
-        totalAvgWaitingTime += avgWaitingTime;
-        totalAvgResponseTime += avgResponseTime;
-        totalThroughput += throughput;
-
-        free(processes);
-    }
-    // Calculate and display final averages over all runs
-    printf("\nFinal Averages after %d runs:\n", runs);
-    printf("Average Turnaround Time: %.2f\n", totalAvgTurnaroundTime / runs);
-    printf("Average Waiting Time: %.2f\n", totalAvgWaitingTime / runs);
-    printf("Average Response Time: %.2f\n", totalAvgResponseTime / runs);
-    printf("Average Throughput: %.2f processes/unit time\n", totalThroughput / runs);
-
-    return 0;
 }

@@ -3,40 +3,22 @@
 #include <string.h>
 #include "process_utils.h"
 #include "queue_utils.h"
+#include "simulation.h"
 
-#define NUM_PROCESSES 25
 #define NUM_RUNS 5
 #define MAX_TIME 9999
 
 static int waitingInLevel[1000]; // Track how long a process has waited at its current level
 
-void simulateHPFNonPreemptive(int runIndex);
-void runNonPreemptive(Process *processes, int numProcesses);
-void printRunStatistics(Process *processes, int numProcesses, int totalRunTime, Timeline *timeline);
-
-int main()
-{
-    for (int run = 1; run <= NUM_RUNS; run++)
-    {
-        simulateHPFNonPreemptive(run);
-        printf("========================================================\n\n");
-    }
-    return 0;
-}
-
 // Runs one simulation of HPF (non-preemptive) for one "run"
-void simulateHPFNonPreemptive(int runIndex)
+void simulateHPFNonPreemptive(int runIndex, Process processes[], int numProcesses, float* avgTurnaroundTime, float* avgWaitingTime, float* avgResponseTime, float* throughput)
 {
     printf("=== HPF Non-Preemptive Run #%d ===\n", runIndex);
-
-    Process *processes = (Process *)malloc(NUM_PROCESSES * sizeof(Process));
-    generateProcesses(processes, NUM_PROCESSES);
-    runNonPreemptive(processes, NUM_PROCESSES);
-    free(processes);
+    runNonPreemptive(processes, numProcesses, avgTurnaroundTime, avgWaitingTime, avgResponseTime, throughput);
 }
 
 // Non-preemptive approach: once a process starts, it runs to completion.
-void runNonPreemptive(Process *processes, int numProcesses)
+void runNonPreemptive(Process *processes, int numProcesses, float* avgTurnaroundTime, float* avgWaitingTime, float* avgResponseTime, float* throughput)
 {
     Queue *queues[4];
     for (int i = 0; i < 4; i++)
@@ -179,7 +161,7 @@ void runNonPreemptive(Process *processes, int numProcesses)
         currentTime++;
     }
 
-    printRunStatistics(processes, numProcesses, timeline->size, timeline);
+    printRunStatisticsNonPreemptive(processes, numProcesses, timeline->size, timeline, avgTurnaroundTime, avgWaitingTime, avgResponseTime, throughput);
     for (int i = 0; i < 4; i++)
     {
         freeQueue(queues[i]);
@@ -188,7 +170,7 @@ void runNonPreemptive(Process *processes, int numProcesses)
 }
 
 // Prints the per-process and overall statistics, along with the timeline
-void printRunStatistics(Process *processes, int numProcesses, int totalRunTime, Timeline *timeline)
+void printRunStatisticsNonPreemptive(Process *processes, int numProcesses, int totalRunTime, Timeline *timeline, float* avgTurnaroundTime, float* avgWaitingTime, float* avgResponseTime, float* throughput)
 {
     printf("\nProcesses (arrived <= 99):\n");
     printf("Name\tArrival\tRuntime\tPriority\tStart\tCompletion\n");
@@ -243,12 +225,16 @@ void printRunStatistics(Process *processes, int numProcesses, int totalRunTime, 
     {
         if (countP[p] > 0)
         {
-            double avgT = sumTurnaround[p] / countP[p];
+            /**double avgT = sumTurnaround[p] / countP[p];
             double avgW = sumWaiting[p] / countP[p];
-            double avgR = sumResponse[p] / countP[p];
-            printf("Priority %d: Throughput=%d / %d\n", p + 1, countP[p], totalRunTime);
+            double avgR = sumResponse[p] / countP[p];**/
+            *avgTurnaroundTime = sumTurnaround[p] / countP[p];
+            *avgWaitingTime = sumWaiting[p] / countP[p];
+            *avgResponseTime = sumResponse[p] / countP[p];
+            *throughput = (float)countP[p] / totalRunTime;
+            printf("Priority %d: Throughput=%.5f\n", p + 1, *throughput);
             printf("  Avg Turnaround=%.2f, Avg Waiting=%.2f, Avg Response=%.2f\n",
-                   avgT, avgW, avgR);
+                   *avgTurnaroundTime, *avgWaitingTime, *avgResponseTime);
         }
         else
         {
@@ -258,14 +244,18 @@ void printRunStatistics(Process *processes, int numProcesses, int totalRunTime, 
 
     if (totalFinished > 0)
     {
-        double avgT = sumT / totalFinished;
+        /**double avgT = sumT / totalFinished;
         double avgW = sumW / totalFinished;
         double avgR = sumR / totalFinished;
-        double throughput = (double)totalFinished / totalRunTime;
+        double throughput = (double)totalFinished / totalRunTime;**/
+        *avgTurnaroundTime = sumT / totalFinished;
+        *avgWaitingTime = sumW / totalFinished;
+        *avgResponseTime = sumR / totalFinished;
+        *throughput = (float)totalFinished / totalRunTime;
         printf("\nOverall stats:\n");
-        printf("Throughput = %.3f processes/quantum\n", throughput);
+        printf("Throughput = %.5f processes/quantum\n", *throughput);
         printf("Avg Turnaround=%.2f, Avg Waiting=%.2f, Avg Response=%.2f\n",
-               avgT, avgW, avgR);
+               *avgTurnaroundTime, *avgWaitingTime, *avgResponseTime);
     }
     else
     {

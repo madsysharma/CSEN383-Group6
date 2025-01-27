@@ -4,11 +4,12 @@
 #include <time.h>
 #include <limits.h>
 #include "process_utils.h"
-#include "queue_utils.h"  
+#include "queue_utils.h"
+#include "simulation.h"  
 
 #define TOTAL_QUANTA 101
 
-void sjf(Process* processes, int numProcesses) {
+void sjf(Process* processes, int numProcesses, float* avgTurnaroundTime, float* avgWaitingTime, float* avgResponseTime, float* throughput) {
     int currentTime = 0;
     float totalTurnaroundTime = 0, totalWaitingTime = 0, totalResponseTime = 0;
     int completed = 0;
@@ -82,57 +83,21 @@ void sjf(Process* processes, int numProcesses) {
     }
 
     // Print averages
-    printf("\nAverage Turnaround Time: %.2f\n", totalTurnaroundTime / numProcesses);
-    printf("Average Waiting Time: %.2f\n", totalWaitingTime / numProcesses);
-    printf("Average Response Time: %.2f\n", totalResponseTime / numProcesses);
+    *avgTurnaroundTime = totalTurnaroundTime / numProcesses;
+    *avgWaitingTime = totalWaitingTime / numProcesses;
+    *avgResponseTime = totalResponseTime / numProcesses;
+    *throughput = (float)completed / TOTAL_QUANTA;
+    printf("\nAverage Turnaround Time: %.2f\n", *avgTurnaroundTime);
+    printf("Average Waiting Time: %.2f\n", *avgWaitingTime);
+    printf("Average Response Time: %.2f\n", *avgResponseTime);
 
     // Print the timeline
     printf("\nTime Chart (total %d quanta): %s\n", TOTAL_QUANTA, timeChart);
 
     // Calculate throughput
-    float throughput = (float)completed / TOTAL_QUANTA;
-    printf("Throughput: %.2f processes/unit time\n", throughput);
+    printf("Throughput: %.2f processes/unit time\n", *throughput);
 
     // Free allocated memory
     free(isCompleted);
     freeQueue(readyQueue);  // Free the queue
-}
-
-int main() {
-    int numProcesses;
-
-    // Input: Number of processes
-    printf("Enter the number of processes to simulate: ");
-    scanf("%d", &numProcesses);
-
-    if (numProcesses <= 0) {
-        printf("Number of processes must be greater than zero.\n");
-        return 1;
-    }
-
-    // Seed the random number generator
-    srand(time(NULL));
-
-    // Create and setup processes
-    Process* processes = (Process*)malloc(numProcesses * sizeof(Process));
-    generateProcesses(processes, numProcesses);
-
-    // Display generated processes
-    printf("\nGenerated Processes:\n");
-    printf("Name\tArrival Time\tRuntime\tPriority\n");
-    for (int i = 0; i < numProcesses; i++) {
-        printf("%c\t%d\t\t%d\t\t%d\n", 
-               processes[i].name, 
-               processes[i].arrivalTime, 
-               processes[i].runtime, 
-               processes[i].priority);
-    }
-
-    // Run Shortest Job First scheduling
-    sjf(processes, numProcesses);
-
-    // Free allocated memory
-    free(processes);
-
-    return 0;
 }

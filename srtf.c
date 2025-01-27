@@ -5,6 +5,7 @@
 #include <time.h>
 #include "process_utils.h"
 #include "queue_utils.h"
+#include "simulation.h"
 
 // This function returns the process in the ready queue with the shortest remaining time to complete execution
 Process* getSRTFProcess(Queue* q)
@@ -44,7 +45,7 @@ void removeFromQueue(Queue* q, Process* p)
 }
 
 // This function implements the Shortest Remaining Time First scheduling algorithm
-void srtf(Process processes[], int numProcesses)
+void srtf(Process processes[], int numProcesses, float* avgTurnaroundTime, float* avgWaitingTime, float* avgResponseTime, float* throughput)
 {
 	int currTime = 0;
 	int completedProcesses = 0;
@@ -114,7 +115,7 @@ void srtf(Process processes[], int numProcesses)
     			totalWaitingTime += wt;
 
     			// Print the individual metrics
-            	        printf("\nProcess %c: Arrival Time = %d, Runtime = %d, Turnaround Time = %d, Waiting Time = %d, Response Time = %d\n", srtfProcess->name, srtfProcess->arrivalTime, srtfProcess->runtime, tat, wt, rt);
+            	printf("Process %c: Arrival Time = %d, Runtime = %d, Turnaround Time = %d, Waiting Time = %d, Response Time = %d\n", srtfProcess->name, srtfProcess->arrivalTime, srtfProcess->runtime, tat, wt, rt);
 
     			//Dequeue the completed process
     			removeFromQueue(readyQueue, srtfProcess);
@@ -125,48 +126,17 @@ void srtf(Process processes[], int numProcesses)
     // Printing the timeline
     printTimeline(t);
 
+    *avgTurnaroundTime = totalTurnaroundTime / numProcesses;
+    *avgWaitingTime = totalWaitingTime / numProcesses;
+    *avgResponseTime = totalResponseTime / numProcesses;
+    *throughput = (float)numProcesses / t->size;
     // Printing the calculated averages for turnaround time, response time and waiting time
-    printf("\nAverage Turnaround Time: %.2f\n", totalTurnaroundTime / numProcesses);
-    printf("\nAverage Waiting Time: %.2f\n", totalWaitingTime / numProcesses);
-    printf("\nAverage Response Time: %.2f\n", totalResponseTime / numProcesses);
-    printf("\nThroughput: %.2f processes/unit time\n", (float)numProcesses / t->size);
+    printf("\nAverage Turnaround Time: %.2f\n", *avgTurnaroundTime);
+    printf("\nAverage Waiting Time: %.2f\n", *avgWaitingTime);
+    printf("\nAverage Response Time: %.2f\n", *avgResponseTime);
+    printf("\nThroughput: %.2f processes/unit time\n", *throughput);
 
     // Finally, memory has to be freed
     freeTimeline(t);
     freeQueue(readyQueue);
-}
-
-int main() 
-{
-    int numProcesses;
-    srand(time(NULL));
-
-    // Input: Number of processes
-    printf("Enter the number of processes to simulate: ");
-    scanf("%d", &numProcesses);
-
-    int runs = 5;
-    for (int i = 0; i < runs; i++)
-    {
-        printf("\nRUN %d:\n", i+1);
-        // Create and setup processes
-        Process* processes = (Process*)malloc(numProcesses * sizeof(Process));
-        generateProcesses(processes, numProcesses);
-
-        // Display generated processes
-        printf("\nGenerated Processes:\n");
-        printf("Name\tArrival Time\tRun Time\tPriority\n");
-        for (int j = 0; j < numProcesses; j++) 
-        {
-            printf("%c\t%d\t\t%d\t\t%d\n", processes[j].name, processes[j].arrivalTime, processes[j].runtime, processes[j].priority);
-        }
-
-        // Run Shortest Remaining Time First scheduling
-        srtf(processes, numProcesses);
-
-        // Free allocated memory
-        free(processes);
-        printf("\n");
-    }
-    return 0;
 }

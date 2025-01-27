@@ -2,12 +2,17 @@
 #include <stdlib.h>
 #include "process_utils.h"
 #include "queue_utils.h"
+#include "simulation.h"
 
 // First-Come First-Served (FCFS) Scheduling
-void fcfs(Queue* queue) {
+void fcfs(Process processes[], int numProcesses, float* avgTurnaroundTime, float* avgWaitingTime, float* avgResponseTime, float* throughput) {
     int currentTime = 0; // Simulation starts at time 0
     float totalTurnaroundTime = 0, totalWaitingTime = 0, totalResponseTime = 0;
-
+    Queue* queue = createQueue(numProcesses);
+    for (int i = 0; i < numProcesses; i++) 
+    {
+        enqueue(queue, processes[i]);
+    }
     // Create the dynamic timeline
     Timeline* t = createTimeline(100);
 
@@ -48,45 +53,16 @@ void fcfs(Queue* queue) {
 
     // Print averages
     int totalProcesses = queue->capacity; // Total number of processes
-    printf("\nAverage Turnaround Time: %.2f\n", totalTurnaroundTime / totalProcesses);
-    printf("Average Waiting Time: %.2f\n", totalWaitingTime / totalProcesses);
-    printf("Average Response Time: %.2f\n", totalResponseTime / totalProcesses);
-    printf("Throughput: %.2f processes/unit time\n", (float)totalProcesses / t->size);
+    *avgTurnaroundTime = totalTurnaroundTime / totalProcesses;
+    *avgWaitingTime = totalWaitingTime / totalProcesses;
+    *avgResponseTime = totalResponseTime / totalProcesses;
+    *throughput = (float)totalProcesses / t->size;
+    printf("\nAverage Turnaround Time: %.2f\n", *avgTurnaroundTime);
+    printf("Average Waiting Time: %.2f\n", *avgWaitingTime);
+    printf("Average Response Time: %.2f\n", *avgResponseTime);
+    printf("Throughput: %.2f processes/unit time\n", *throughput);
 
     // Free timeline
     freeTimeline(t);
-}
-
-int main() {
-    int numProcesses;
-
-    printf("Enter the number of processes to simulate: ");
-    scanf("%d", &numProcesses);
-
-    // Create a queue with sufficient capacity
-    Queue* queue = createQueue(numProcesses);
-
-    // Generate processes and enqueue them
-    Process* processes = (Process*)malloc(numProcesses * sizeof(Process));
-    generateProcesses(processes, numProcesses);
-    for (int i = 0; i < numProcesses; i++) {
-        enqueue(queue, processes[i]);
-    }
-    free(processes);
-
-    // Display generated processes
-    printf("\nGenerated Processes:\n");
-    printf("Name\tArrival Time\tRuntime\tPriority\n");
-    for (int i = 0; i < numProcesses; i++) {
-        printf("%c\t%d\t\t%d\t%d\n", queue->processes[i].name, queue->processes[i].arrivalTime,
-               queue->processes[i].runtime, queue->processes[i].priority);
-    }
-
-    // Run FCFS scheduling
-    fcfs(queue);
-
-    // Free the queue
     freeQueue(queue);
-
-    return 0;
 }
