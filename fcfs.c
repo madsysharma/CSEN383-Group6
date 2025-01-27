@@ -19,6 +19,12 @@ void fcfs(Process processes[], int numProcesses, float* avgTurnaroundTime, float
     printf("\nFirst-Come First-Served (FCFS) Scheduling:\n");
 
     while (!isQueueEmpty(queue)) {
+        // Check the current time to ensure processes don't start at or beyond the 100th quantum
+        if (currentTime >= 100)
+        {
+            printf("Stopping simulation since a process cannot be executed at or beyond the 100th quantum.\n");
+            break;
+        }
         Process process = dequeue(queue);
 
         // Handle idle CPU time
@@ -56,7 +62,7 @@ void fcfs(Process processes[], int numProcesses, float* avgTurnaroundTime, float
     *avgTurnaroundTime = totalTurnaroundTime / totalProcesses;
     *avgWaitingTime = totalWaitingTime / totalProcesses;
     *avgResponseTime = totalResponseTime / totalProcesses;
-    *throughput = (float)totalProcesses / t->size;
+    *throughput = (float)numProcesses / t->size;
     printf("\nAverage Turnaround Time: %.2f\n", *avgTurnaroundTime);
     printf("Average Waiting Time: %.2f\n", *avgWaitingTime);
     printf("Average Response Time: %.2f\n", *avgResponseTime);

@@ -7,9 +7,13 @@
 void generateProcesses(Process* processes, int numProcesses) {
     char processName = 'A';
     // srand(0); // Fixed random seed for debugging consistency
-
     for (int i = 0; i < numProcesses; i++) {
-        processes[i].name = processName++;
+        processes[i].name = processName;
+        if (processName == 'Z')
+        {
+            processName = 'a' - 1;
+        }
+        processName++;
         processes[i].arrivalTime = rand() % 100;       // Random arrival time (0–99)
         processes[i].runtime = (rand() % 10) + 1;     // Random runtime (1–10)
         processes[i].priority = (rand() % 4) + 1;     // Random priority (1–4)

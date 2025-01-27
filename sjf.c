@@ -20,6 +20,12 @@ void sjf(Process* processes, int numProcesses, float* avgTurnaroundTime, float* 
     int* isCompleted = (int*)calloc(numProcesses, sizeof(int));
 
     while (completedProcesses < numProcesses) {
+        // Check the current time to ensure processes don't start at or beyond the 100th quantum
+        if (currentTime >= 100)
+        {
+            printf("Stopping simulation since a process cannot be executed at or beyond the 100th quantum.\n");
+            break;
+        }
         // Find the shortest job that has arrived and is not yet completed
         int shortestJobIndex = -1;
         int shortestRuntime = INT_MAX;
@@ -92,7 +98,7 @@ void sjf(Process* processes, int numProcesses, float* avgTurnaroundTime, float* 
     *avgTurnaroundTime = totalTurnaroundTime / numProcesses;
     *avgWaitingTime = totalWaitingTime / numProcesses;
     *avgResponseTime = totalResponseTime / numProcesses;
-    *throughput = (float)numProcesses / t->size;
+    *throughput = (float)completedProcesses / t->size;
 
     printf("\nAverage Turnaround Time: %.2f\n", *avgTurnaroundTime);
     printf("Average Waiting Time: %.2f\n", *avgWaitingTime);

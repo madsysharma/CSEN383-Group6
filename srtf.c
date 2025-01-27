@@ -56,6 +56,12 @@ void srtf(Process processes[], int numProcesses, float* avgTurnaroundTime, float
 
     while(completedProcesses < numProcesses)
     {
+    	// Check the current time to ensure processes don't start at or beyond the 100th quantum
+    	if (currTime >= 100)
+    	{
+    		printf("Stopping simulation since a process cannot be executed at or beyond the 100th quantum.\n");
+    		break;
+    	}
     	// Enqueue the newly-arrived processes
     	for (int i = 0; i < numProcesses; i++)
     	{
@@ -129,7 +135,7 @@ void srtf(Process processes[], int numProcesses, float* avgTurnaroundTime, float
     *avgTurnaroundTime = totalTurnaroundTime / numProcesses;
     *avgWaitingTime = totalWaitingTime / numProcesses;
     *avgResponseTime = totalResponseTime / numProcesses;
-    *throughput = (float)numProcesses / t->size;
+    *throughput = (float)completedProcesses / t->size;
     // Printing the calculated averages for turnaround time, response time and waiting time
     printf("\nAverage Turnaround Time: %.2f\n", *avgTurnaroundTime);
     printf("\nAverage Waiting Time: %.2f\n", *avgWaitingTime);

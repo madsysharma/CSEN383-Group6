@@ -6,7 +6,7 @@
 #include "simulation.h"
 
 #define NUM_RUNS 5
-#define MAX_TIME 9999
+#define MAX_TIME 100
 
 static int waitingInLevel[1000]; // Track how long a process has waited at its current level
 
@@ -158,7 +158,7 @@ void runNonPreemptive(Process *processes, int numProcesses, float* avgTurnaround
             }
         }
 
-        currentTime++;
+        currentTime += 1;
     }
 
     printRunStatisticsNonPreemptive(processes, numProcesses, timeline->size, timeline, avgTurnaroundTime, avgWaitingTime, avgResponseTime, throughput);
@@ -201,7 +201,7 @@ void printRunStatisticsNonPreemptive(Process *processes, int numProcesses, int t
     // Calculate stats per original priority
     for (int i = 0; i < numProcesses; i++)
     {
-        if (processes[i].arrivalTime <= 99 && processes[i].startTime != -1)
+        if (processes[i].arrivalTime <= 99 && processes[i].startTime != -1 && processes[i].completionTime != 0)
         {
             int p = processes[i].priority - 1;
             int turnaround = processes[i].completionTime - processes[i].arrivalTime;

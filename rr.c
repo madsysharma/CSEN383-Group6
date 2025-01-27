@@ -13,6 +13,12 @@ void roundRobin(Process processes[], int numProcesses, float* avgTurnaroundTime,
     printf("\nRound Robin Scheduling (Quantum = 1):\n");
 
     while (completedProcesses < numProcesses) {
+        // Check the current time to ensure processes don't start at or beyond the 100th quantum
+        if (currTime >= 100)
+        {
+            printf("Stopping simulation since a process cannot be executed at or beyond the 100th quantum.\n");
+            break;
+        }
         // Add processes arriving at the current time to the ready queue
         for (int i = 0; i < numProcesses; i++) {
             if (processes[i].arrivalTime == currTime && processes[i].remainingTime > 0) {
@@ -66,7 +72,7 @@ void roundRobin(Process processes[], int numProcesses, float* avgTurnaroundTime,
     *avgTurnaroundTime = totalTurnaroundTime / numProcesses;
     *avgWaitingTime = totalWaitingTime / numProcesses;
     *avgResponseTime = totalResponseTime / numProcesses;
-    *throughput = (float)numProcesses / t->size;
+    *throughput = (float)completedProcesses / t->size;
 
     // Display averages
     printf("\nAverage Turnaround Time: %.2f\n", *avgTurnaroundTime);
