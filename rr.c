@@ -42,7 +42,7 @@ void roundRobin(Process processes[], int numProcesses, float* avgTurnaroundTime,
 
             if (currProcess.remainingTime == 0) {
                 // Process has completed
-                completedProcesses++;
+                completedProcesses += 1;
                 currProcess.completionTime = currTime;
 
                 int tat = currProcess.completionTime - currProcess.arrivalTime;
@@ -69,9 +69,9 @@ void roundRobin(Process processes[], int numProcesses, float* avgTurnaroundTime,
     printTimeline(t);
 
     // Calculate averages for this run
-    *avgTurnaroundTime = totalTurnaroundTime / numProcesses;
-    *avgWaitingTime = totalWaitingTime / numProcesses;
-    *avgResponseTime = totalResponseTime / numProcesses;
+    *avgTurnaroundTime = totalTurnaroundTime / completedProcesses;
+    *avgWaitingTime = totalWaitingTime / completedProcesses;
+    *avgResponseTime = totalResponseTime / completedProcesses;
     *throughput = (float)completedProcesses / t->size;
 
     // Display averages

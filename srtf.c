@@ -121,9 +121,9 @@ void srtf(Process processes[], int numProcesses, float* avgTurnaroundTime, float
     // Printing the timeline
     printTimeline(t);
 
-    *avgTurnaroundTime = totalTurnaroundTime / numProcesses;
-    *avgWaitingTime = totalWaitingTime / numProcesses;
-    *avgResponseTime = totalResponseTime / numProcesses;
+    *avgTurnaroundTime = totalTurnaroundTime / completedProcesses;
+    *avgWaitingTime = totalWaitingTime / completedProcesses;
+    *avgResponseTime = totalResponseTime / completedProcesses;
     *throughput = (float)completedProcesses / t->size;
     // Printing the calculated averages for turnaround time, response time and waiting time
     printf("\nAverage Turnaround Time: %.2f\n", *avgTurnaroundTime);

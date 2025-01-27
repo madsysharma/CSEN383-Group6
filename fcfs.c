@@ -62,11 +62,11 @@ void fcfs(Process processes[], int numProcesses, float* avgTurnaroundTime, float
     printTimeline(t);
 
     // Print averages
-    int totalProcesses = queue->capacity; // Total number of processes
-    *avgTurnaroundTime = totalTurnaroundTime / totalProcesses;
-    *avgWaitingTime = totalWaitingTime / totalProcesses;
-    *avgResponseTime = totalResponseTime / totalProcesses;
+    *avgTurnaroundTime = totalTurnaroundTime / completedProcesses;
+    *avgWaitingTime = totalWaitingTime / completedProcesses;
+    *avgResponseTime = totalResponseTime / completedProcesses;
     *throughput = (float)completedProcesses / t->size;
+    
     printf("\nAverage Turnaround Time: %.2f\n", *avgTurnaroundTime);
     printf("Average Waiting Time: %.2f\n", *avgWaitingTime);
     printf("Average Response Time: %.2f\n", *avgResponseTime);

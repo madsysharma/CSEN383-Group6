@@ -95,9 +95,9 @@ void sjf(Process* processes, int numProcesses, float* avgTurnaroundTime, float* 
     printTimeline(t);
 
     // Calculate and print averages
-    *avgTurnaroundTime = totalTurnaroundTime / numProcesses;
-    *avgWaitingTime = totalWaitingTime / numProcesses;
-    *avgResponseTime = totalResponseTime / numProcesses;
+    *avgTurnaroundTime = totalTurnaroundTime / completedProcesses;
+    *avgWaitingTime = totalWaitingTime / completedProcesses;
+    *avgResponseTime = totalResponseTime / completedProcesses;
     *throughput = (float)completedProcesses / t->size;
 
     printf("\nAverage Turnaround Time: %.2f\n", *avgTurnaroundTime);
