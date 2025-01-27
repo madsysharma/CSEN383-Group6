@@ -7,6 +7,14 @@
 #include "queue_utils.h"
 #include "simulation.h"
 
+void copyProcesses(Process *dest, Process* source, int numProcesses)
+{
+    for(int i = 0; i < numProcesses; i++)
+    {
+        dest[i] = source[i];
+    }
+}
+
 int main(int argc, char **argv)
 {
 	int numProcesses;
@@ -30,66 +38,84 @@ int main(int argc, char **argv)
     {
         printf("\nRUN %d:\n", i+1);
         // Create and setup processes
-        Process* processes = (Process*)malloc(numProcesses * sizeof(Process));
-        generateProcesses(processes, numProcesses);
+        Process* originalProcesses = (Process*)malloc(numProcesses * sizeof(Process));
+        generateProcesses(originalProcesses, numProcesses);
 
         // Display generated processes
         printf("\nGenerated Processes:\n");
         printf("Name\tArrival Time\tRun Time\tPriority\n");
         for (int j = 0; j < numProcesses; j++) 
         {
-            printf("%c\t%d\t\t%d\t\t%d\n", processes[j].name, processes[j].arrivalTime, processes[j].runtime, processes[j].priority);
+            printf("%c\t%d\t\t%d\t\t%d\n", originalProcesses[j].name, originalProcesses[j].arrivalTime, originalProcesses[j].runtime, originalProcesses[j].priority);
         }
         float avgTurnaroundTime = 0, avgWaitingTime = 0, avgResponseTime = 0, throughput = 0;
         // Run First Come First Serve scheduling
-        fcfs(processes, numProcesses, &avgTurnaroundTime, &avgWaitingTime, &avgResponseTime, &throughput);
+        Process* fcfsProcesses = (Process*)malloc(numProcesses * sizeof(Process));
+        copyProcesses(fcfsProcesses, originalProcesses, numProcesses);
+        fcfs(fcfsProcesses, numProcesses, &avgTurnaroundTime, &avgWaitingTime, &avgResponseTime, &throughput);
         totalAvgTurnaroundTime[0] += avgTurnaroundTime;
         totalAvgWaitingTime[0] += avgWaitingTime;
         totalAvgResponseTime[0] += avgResponseTime;
         totalThroughput[0] += throughput;
+        free(fcfsProcesses);
         printf("========================================================\n\n");
         // Run Shortest Job First scheduling
         avgTurnaroundTime = 0, avgWaitingTime = 0, avgResponseTime = 0, throughput = 0;
-        sjf(processes, numProcesses, &avgTurnaroundTime, &avgWaitingTime, &avgResponseTime, &throughput);
+        Process* sjfProcesses = (Process*)malloc(numProcesses * sizeof(Process));
+        copyProcesses(sjfProcesses, originalProcesses, numProcesses);
+        sjf(sjfProcesses, numProcesses, &avgTurnaroundTime, &avgWaitingTime, &avgResponseTime, &throughput);
         totalAvgTurnaroundTime[1] += avgTurnaroundTime;
         totalAvgWaitingTime[1] += avgWaitingTime;
         totalAvgResponseTime[1] += avgResponseTime;
         totalThroughput[1] += throughput;
+        free(sjfProcesses);
         printf("========================================================\n\n");
         // Run Shortest Remaining Time First scheduling
         avgTurnaroundTime = 0, avgWaitingTime = 0, avgResponseTime = 0, throughput = 0;
-        srtf(processes, numProcesses, &avgTurnaroundTime, &avgWaitingTime, &avgResponseTime, &throughput);
+        Process* srtfProcesses = (Process*)malloc(numProcesses * sizeof(Process));
+        copyProcesses(srtfProcesses, originalProcesses, numProcesses);
+        srtf(srtfProcesses, numProcesses, &avgTurnaroundTime, &avgWaitingTime, &avgResponseTime, &throughput);
         totalAvgTurnaroundTime[2] += avgTurnaroundTime;
         totalAvgWaitingTime[2] += avgWaitingTime;
         totalAvgResponseTime[2] += avgResponseTime;
         totalThroughput[2] += throughput;
+        free(srtfProcesses);
         printf("========================================================\n\n");
         // Run Round Robin scheduling
         avgTurnaroundTime = 0, avgWaitingTime = 0, avgResponseTime = 0, throughput = 0;
-        roundRobin(processes, numProcesses, &avgTurnaroundTime, &avgWaitingTime, &avgResponseTime, &throughput);
+        Process* rrProcesses = (Process*)malloc(numProcesses * sizeof(Process));
+        copyProcesses(rrProcesses, originalProcesses, numProcesses);
+        roundRobin(rrProcesses, numProcesses, &avgTurnaroundTime, &avgWaitingTime, &avgResponseTime, &throughput);
         totalAvgTurnaroundTime[3] += avgTurnaroundTime;
         totalAvgWaitingTime[3] += avgWaitingTime;
         totalAvgResponseTime[3] += avgResponseTime;
         totalThroughput[3] += throughput;
+        free(rrProcesses);
         printf("========================================================\n\n");
         // Run Highest Priority First scheduling in non-preemptive mode
         avgTurnaroundTime = 0, avgWaitingTime = 0, avgResponseTime = 0, throughput = 0;
-        simulateHPFNonPreemptive(i+1, processes, numProcesses, &avgTurnaroundTime, &avgWaitingTime, &avgResponseTime, &throughput);
+        Process* hpfNPProcesses = (Process*)malloc(numProcesses * sizeof(Process));
+        copyProcesses(hpfNPProcesses, originalProcesses, numProcesses);
+        simulateHPFNonPreemptive(i+1, hpfNPProcesses, numProcesses, &avgTurnaroundTime, &avgWaitingTime, &avgResponseTime, &throughput);
         totalAvgTurnaroundTime[4] += avgTurnaroundTime;
         totalAvgWaitingTime[4] += avgWaitingTime;
         totalAvgResponseTime[4] += avgResponseTime;
         totalThroughput[4] += throughput;
+        free(hpfNPProcesses);
         printf("========================================================\n\n");
         // Run Highest Priority First scheduling in preemptive mode
         avgTurnaroundTime = 0, avgWaitingTime = 0, avgResponseTime = 0, throughput = 0;
-        simulateHPFPreemptive(i+1, processes, numProcesses, &avgTurnaroundTime, &avgWaitingTime, &avgResponseTime, &throughput);
+        Process* hpfPreProcesses = (Process*)malloc(numProcesses * sizeof(Process));
+        copyProcesses(hpfPreProcesses, originalProcesses, numProcesses);
+        simulateHPFPreemptive(i+1, hpfPreProcesses, numProcesses, &avgTurnaroundTime, &avgWaitingTime, &avgResponseTime, &throughput);
         totalAvgTurnaroundTime[5] += avgTurnaroundTime;
         totalAvgWaitingTime[5] += avgWaitingTime;
         totalAvgResponseTime[5] += avgResponseTime;
         totalThroughput[5] += throughput;
+        free(hpfPreProcesses);
         printf("========================================================\n\n");
         // Free allocated memory
-        free(processes);
+        free(originalProcesses);
         printf("\n");
     }
     // Calculate and display final averages over all runs

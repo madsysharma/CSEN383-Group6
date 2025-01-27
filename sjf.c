@@ -25,13 +25,19 @@ void sjf(Process* processes, int numProcesses, float* avgTurnaroundTime, float* 
         int shortestRuntime = INT_MAX;
 
         for (int i = 0; i < numProcesses; i++) {
-            if (!isCompleted[i] && processes[i].arrivalTime <= currentTime && processes[i].runtime < shortestRuntime) {
-                shortestRuntime = processes[i].runtime;
-                shortestJobIndex = i;
+            if (!isCompleted[i] && processes[i].arrivalTime <= currentTime) 
+            {
+                if (processes[i].runtime < shortestRuntime || (processes[i].runtime == shortestRuntime && processes[i].arrivalTime < processes[shortestJobIndex].arrivalTime))
+                {
+                    // This is to ensure that the shortest runtime is prioritized, and also to break ties by arrival time
+                    shortestRuntime = processes[i].runtime;
+                    shortestJobIndex = i;
+                }
             }
         }
 
-        if (shortestJobIndex != -1) {
+        if (shortestJobIndex != -1) 
+        {
             // Process the selected job
             Process* shortestJob = &processes[shortestJobIndex];
             shortestJob->startTime = currentTime;
@@ -51,7 +57,7 @@ void sjf(Process* processes, int numProcesses, float* avgTurnaroundTime, float* 
 
             // Mark the process as completed
             isCompleted[shortestJobIndex] = 1;
-            completedProcesses++;
+            completedProcesses += 1;
 
             // Print process details
             printf("Process %c: Arrival Time = %d, Runtime = %d, Turnaround Time = %d, Waiting Time = %d, Response Time = %d\n",
@@ -60,10 +66,22 @@ void sjf(Process* processes, int numProcesses, float* avgTurnaroundTime, float* 
 
             // Move time forward
             currentTime = shortestJob->completionTime;
-        } else {
-            // If no process is ready, mark CPU as idle
-            updateTimeline(t, currentTime, 1, '-');
-            currentTime++;
+        } 
+        else 
+        {
+            // If no process is ready, mark CPU as idle, look ahead for the next arrival time
+            int arrivesNext = INT_MAX;
+            for (int i = 0; i < numProcesses; i++)
+            {
+                if (!isCompleted[i] && processes[i].arrivalTime > currentTime) 
+                {
+                    arrivesNext = (processes[i].arrivalTime < arrivesNext) ? processes[i].arrivalTime : arrivesNext;
+                }
+            }
+
+            // Update timeline to account for idle time
+            updateTimeline(t, currentTime, arrivesNext - currentTime, '-');
+            currentTime = arrivesNext;
         }
     }
 
