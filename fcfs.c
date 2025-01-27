@@ -7,8 +7,9 @@
 // First-Come First-Served (FCFS) Scheduling
 void fcfs(Process processes[], int numProcesses, float* avgTurnaroundTime, float* avgWaitingTime, float* avgResponseTime, float* throughput) {
     int currentTime = 0; // Simulation starts at time 0
-    float totalTurnaroundTime = 0, totalWaitingTime = 0, totalResponseTime = 0;
-    Queue* queue = createQueue(numProcesses);
+    int completedProcesses = 0; // Tracks the number of completed processes
+    float totalTurnaroundTime = 0, totalWaitingTime = 0, totalResponseTime = 0; // Metrics for FCFS scheduling
+    Queue* queue = createQueue(numProcesses); // Initializing process queue
     for (int i = 0; i < numProcesses; i++) 
     {
         enqueue(queue, processes[i]);
@@ -41,6 +42,9 @@ void fcfs(Process processes[], int numProcesses, float* avgTurnaroundTime, float
         currentTime += process.runtime;
         process.completionTime = currentTime;
 
+        // Increment the number of completed processes
+        completedProcesses += 1;
+
         int turnaroundTime = process.completionTime - process.arrivalTime;
         int waitingTime = turnaroundTime - process.runtime;
         int responseTime = process.startTime - process.arrivalTime;
@@ -62,7 +66,7 @@ void fcfs(Process processes[], int numProcesses, float* avgTurnaroundTime, float
     *avgTurnaroundTime = totalTurnaroundTime / totalProcesses;
     *avgWaitingTime = totalWaitingTime / totalProcesses;
     *avgResponseTime = totalResponseTime / totalProcesses;
-    *throughput = (float)numProcesses / t->size;
+    *throughput = (float)completedProcesses / t->size;
     printf("\nAverage Turnaround Time: %.2f\n", *avgTurnaroundTime);
     printf("Average Waiting Time: %.2f\n", *avgWaitingTime);
     printf("Average Response Time: %.2f\n", *avgResponseTime);

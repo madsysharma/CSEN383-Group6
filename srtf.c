@@ -77,20 +77,9 @@ void srtf(Process processes[], int numProcesses, float* avgTurnaroundTime, float
 
     	if(srtfProcess == NULL)
     	{
-    		// In this case, no process is ready and the CPU is idle - we should ensure that it's not idle for more than 2 quanta
-    		int nextArrivalTime = INT_MAX;
-            for (int i = 0; i < numProcesses; i++)
-            {
-                if (processes[i].remainingTime > 0 && processes[i].arrivalTime > currTime)
-                {
-                    nextArrivalTime = (processes[i].arrivalTime < nextArrivalTime) ? processes[i].arrivalTime : nextArrivalTime;
-                }
-            }
-
-            int idleTime = (nextArrivalTime == INT_MAX) ? 1 : nextArrivalTime - currTime;
-            idleTime = (idleTime > 2) ? 2 : idleTime;  // Keep the maximum idle time to 2 quanta
-            updateTimeline(t, currTime, idleTime, '-');
-            currTime += idleTime;
+    		// In this case, no process is ready and the CPU is idle
+    		updateTimeline(t, currTime, 1, '-');
+            currTime += 1;
     	}
     	else
     	{
