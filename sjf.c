@@ -4,19 +4,27 @@
 #include <time.h>
 #include <limits.h>
 #include "process_utils.h"
-#include "queue_utils.h"
-#include "simulation.h"  
+#include "queue_utils.h"  // Include the queue utilities
 
-#define TOTAL_QUANTA 101
-
-void sjf(Process* processes, int numProcesses, float* avgTurnaroundTime, float* avgWaitingTime, float* avgResponseTime, float* throughput) {
+void sjf(Process* processes, int numProcesses) {
     int currentTime = 0;
     float totalTurnaroundTime = 0, totalWaitingTime = 0, totalResponseTime = 0;
     int completed = 0;
     int* isCompleted = (int*)calloc(numProcesses, sizeof(int));
-    char timeChart[TOTAL_QUANTA + 1];
-    memset(timeChart, '-', TOTAL_QUANTA);
-    timeChart[TOTAL_QUANTA] = '\0';
+
+    // Calculate the total quanta required dynamically
+    int totalQuanta = 0;
+    for (int i = 0; i < numProcesses; i++) {
+        int processEndTime = processes[i].arrivalTime + processes[i].runtime;
+        if (processEndTime > totalQuanta) {
+            totalQuanta = processEndTime;
+        }
+    }
+
+    // Create a timeline with the calculated total quanta
+    char* timeChart = (char*)malloc((totalQuanta + 1) * sizeof(char));
+    memset(timeChart, '-', totalQuanta);
+    timeChart[totalQuanta] = '\0';
 
     // Create a queue for ready processes
     Queue* readyQueue = createQueue(numProcesses);
@@ -53,7 +61,7 @@ void sjf(Process* processes, int numProcesses, float* avgTurnaroundTime, float* 
             shortestJob.completionTime = currentTime + shortestJob.runtime;
 
             // Update the timeline
-            for (int t = currentTime; t < shortestJob.completionTime && t < TOTAL_QUANTA; t++) {
+            for (int t = currentTime; t < shortestJob.completionTime && t < totalQuanta; t++) {
                 timeChart[t] = shortestJob.name;
             }
 
@@ -66,6 +74,7 @@ void sjf(Process* processes, int numProcesses, float* avgTurnaroundTime, float* 
             totalWaitingTime += waitingTime;
             totalResponseTime += responseTime;
 
+            // Print individual process metrics
             printf("Process %c: Arrival Time = %d, Runtime = %d, Turnaround Time = %d, Waiting Time = %d, Response Time = %d\n",
                    shortestJob.name, 
                    shortestJob.arrivalTime, 
@@ -83,21 +92,24 @@ void sjf(Process* processes, int numProcesses, float* avgTurnaroundTime, float* 
     }
 
     // Print averages
-    *avgTurnaroundTime = totalTurnaroundTime / numProcesses;
-    *avgWaitingTime = totalWaitingTime / numProcesses;
-    *avgResponseTime = totalResponseTime / numProcesses;
-    *throughput = (float)completed / TOTAL_QUANTA;
-    printf("\nAverage Turnaround Time: %.2f\n", *avgTurnaroundTime);
-    printf("Average Waiting Time: %.2f\n", *avgWaitingTime);
-    printf("Average Response Time: %.2f\n", *avgResponseTime);
+    printf("\nAverage Turnaround Time: %.2f\n", totalTurnaroundTime / numProcesses);
+    printf("Average Waiting Time: %.2f\n", totalWaitingTime / numProcesses);
+    printf("Average Response Time: %.2f\n", totalResponseTime / numProcesses);
 
     // Print the timeline
-    printf("\nTime Chart (total %d quanta): %s\n", TOTAL_QUANTA, timeChart);
+    printf("\nTime Chart (total %d quanta): ", totalQuanta);
+    for (int i = 0; i < totalQuanta; i++) {
+        printf("%c", timeChart[i]);
+    }
+    printf("\n");
 
     // Calculate throughput
-    printf("Throughput: %.2f processes/unit time\n", *throughput);
+    float throughput = (float)completed / totalQuanta;
+    printf("Throughput: %.2f processes/unit time\n", throughput);
 
     // Free allocated memory
     free(isCompleted);
+    free(timeChart);
     freeQueue(readyQueue);  // Free the queue
 }
+
