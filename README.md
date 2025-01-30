@@ -1,4 +1,5 @@
-# Process Scheduling Utilities and FCFS Implementation
+# CSEN 383 - Group 6 - Projects
+# Project 2 - Process Scheduling Utilities and FCFS Implementation
 
 ## Files:
 1. `process_utils.h`:
@@ -39,3 +40,6 @@
   ```bash
   gcc -o main *.c
   ./main
+
+
+# Project 3 - Multithreading Implementation
