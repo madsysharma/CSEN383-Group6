@@ -39,8 +39,4 @@
 ## Compilation Instructions:
   ```bash
   gcc -o main *.c
-  ./main```
-
-
-
-# Project 3 - Multithreading Implementation
+  ./main
