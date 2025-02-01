@@ -1,53 +1,59 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include "queue_utils.h"
 
-// Create a queue
-Queue* createQueue(int capacity) {
-    Queue* queue = (Queue*)malloc(sizeof(Queue));
-    queue->capacity = capacity;
-    queue->front = 0;
-    queue->rear = -1;
+// Create and initialize an empty queue.
+Queue *initQueue() {
+    Queue *queue = (Queue *)malloc(sizeof(Queue));
+    if (!queue) {
+        perror("Failed to allocate queue");
+        exit(EXIT_FAILURE);
+    }
+    queue->front = queue->rear = NULL;
     queue->size = 0;
-    queue->customers = (void**)malloc(capacity * sizeof(void*));
     return queue;
 }
 
-// Check if the queue is full
-int isQueueFull(Queue* queue) {
-    return queue->size == queue->capacity;
-}
-
-// Check if the queue is empty
-int isQueueEmpty(Queue* queue) {
-    return queue->size == 0;
-}
-
-// Enqueue a process into the queue
-void enqueue(Queue* queue, void* customer) {
-    if (isQueueFull(queue)) {
-        printf("Queue is full.\n");
-        return;
+// Enqueue a new customer at the tail.
+void enqueue(Queue *queue, Customer *customer) {
+    Node *node = (Node *)malloc(sizeof(Node));
+    if (!node) {
+        perror("Failed to allocate node");
+        exit(EXIT_FAILURE);
     }
-    queue->rear = (queue->rear + 1) % queue->capacity;
-    queue->customers[queue->rear] = customer;
+    node->customer = customer;
+    node->next = NULL;
+    if (queue->rear == NULL) {
+        queue->front = queue->rear = node;
+    } else {
+        queue->rear->next = node;
+        queue->rear = node;
+    }
     queue->size++;
 }
 
-// Dequeue a process from the queue
-void* dequeue(Queue* queue) {
-    if (isQueueEmpty(queue)) {
+// Dequeue and return the customer from the head.
+Customer *dequeue(Queue *queue) {
+    if (queue->front == NULL)
         return NULL;
-    }
-    void* customer = queue->customers[queue->front];
-    queue->front = (queue->front + 1) % queue->capacity;
+    Node *temp = queue->front;
+    Customer *customer = temp->customer;
+    queue->front = temp->next;
+    if (queue->front == NULL)
+        queue->rear = NULL;
+    free(temp);
     queue->size--;
     return customer;
 }
 
-// Free queue memory
-void freeQueue(Queue* queue) {
-    free(queue->customers);
-    free(queue);
+// Return nonzero if the queue is empty.
+int isEmpty(Queue *queue) {
+    return (queue->front == NULL);
 }
 
+// Free all memory associated with the queue.
+void freeQueue(Queue *queue) {
+    while (!isEmpty(queue)) {
+        Customer *cust = dequeue(queue);
+        free(cust);
+    }
+    free(queue);
+}
