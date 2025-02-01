@@ -122,7 +122,7 @@ void initialize_orderings()
 	// For medium-priced sellers (M): custom order:
 	// Order rows: 5,6,4,7,3,8,2,9,1,10 in 1-indexed terms.
 	// In 0-indexed, that becomes: 4,5,3,6,2,7,1,8,0,9.
-	int m_order[ROWS] = {5, 6, 4, 7, 3, 8, 2, 9, 1, 0};
+	int m_order[ROWS] = {4, 5, 3, 6, 2, 7, 1, 8, 0, 9};
 	for (int r = 0; r < ROWS; r++)
 	{
 		int row = m_order[r];
