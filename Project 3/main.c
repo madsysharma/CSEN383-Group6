@@ -15,6 +15,8 @@ volatile int current_minute = 0;
 pthread_mutex_t time_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t time_cond = PTHREAD_COND_INITIALIZER;
 
+pthread_mutex_t print_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 // Mutex to protect the global seating chart and seat assignment
 pthread_mutex_t seat_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -139,18 +141,20 @@ void initialize_orderings()
 void *timer_thread(void *arg)
 {
 	(void)arg; // unused
+	// Let the timer run until minute 70 (which covers all possible service completions).
 	while (1)
 	{
-		usleep(100000); // 0.1 sec per simulated minute (simulation takes about 6 sec total)
+		usleep(100000); // 0.1 sec per simulated minute
 		pthread_mutex_lock(&time_mutex);
 		current_minute++;
 		pthread_cond_broadcast(&time_cond);
-		pthread_mutex_unlock(&time_mutex);
-		if (current_minute > 60)
+		// Stop the timer after reaching 70 minutes.
+		if (current_minute >= 70)
 		{
-			printf("\nEnding timer thread\n");
+			pthread_mutex_unlock(&time_mutex);
 			break;
 		}
+		pthread_mutex_unlock(&time_mutex);
 	}
 	return NULL;
 }
@@ -186,95 +190,103 @@ void generate_arrival_times(Seller *seller)
 void *seller_thread(void *arg)
 {
 	Seller *seller = (Seller *)arg;
-	int busy = 0;			  // 0: not serving any customer; 1: currently serving
-	int service_end_time = 0; // When the current service will complete
+	int busy = 0;			  // 0: not serving; 1: currently serving a customer
+	int service_end_time = 0; // When the current sale will complete
 	Customer *current_customer = NULL;
-	int last_tick = -1; // The last minute that we processed
+	int last_tick = -1; // Last simulation minute processed
 
 	while (1)
 	{
-		// Wait for the next minute tick if one exists, or exit if simulation is over.
+		// Wait until a new minute tick is available.
 		pthread_mutex_lock(&time_mutex);
-		while (current_minute <= last_tick && current_minute <= 60)
+		while (current_minute <= last_tick)
 		{
 			pthread_cond_wait(&time_cond, &time_mutex);
 		}
-		// When we wake up, if simulation time is over and no service is in progress, exit.
-		if (current_minute > 60 && !busy)
-		{
-			pthread_mutex_unlock(&time_mutex);
-			// Clear any remaining waiting customers.
-			while (!isEmpty(seller->queue))
-			{
-				Customer *cust = dequeue(seller->queue);
-				printf("%d:%02d Seller %c%d: Customer %s turned away (end of simulation)\n",
-					   current_minute / 60, current_minute % 60,
-					   seller->type, (seller->type == 'H' ? 0 : seller->id), cust->id);
-				fflush(stdout);
-				seller->turned_away++;
-				free(cust);
-			}
-			break;
-		}
 		int local_time = current_minute;
-		last_tick = local_time; // Update the last processed tick
+		last_tick = local_time;
 		pthread_mutex_unlock(&time_mutex);
 
-		// Process any customer arrivals scheduled for this minute.
-		while (seller->next_arrival_index < seller->num_customers &&
-			   seller->arrival_times[seller->next_arrival_index] == local_time)
+		// If we're past the arrival window (after minute 60) and not busy, clear the queue and exit.
+		if (local_time > 60)
 		{
-			Customer *cust = (Customer *)malloc(sizeof(Customer));
-			if (!cust)
+			if (!busy)
 			{
-				perror("Failed to allocate Customer");
-				exit(EXIT_FAILURE);
+				while (!isEmpty(seller->queue))
+				{
+					Customer *cust = dequeue(seller->queue);
+					pthread_mutex_lock(&print_mutex);
+					printf("%d:%02d Seller %c%d: Customer %s turned away (end of simulation)\n",
+						   local_time / 60, local_time % 60,
+						   seller->type, (seller->type == 'H' ? 0 : seller->id), cust->id);
+					fflush(stdout);
+					pthread_mutex_unlock(&print_mutex);
+					seller->turned_away++;
+					free(cust);
+				}
+				break;
 			}
-			cust->arrival_time = local_time;
-			seller->customer_count++;
-			// Create customer ID depending on seller type.
-			if (seller->type == 'H')
+			// If busy, let the current sale finish.
+		}
+		else
+		{
+			// Process any customer arrivals if within the arrival window.
+			while (seller->next_arrival_index < seller->num_customers &&
+				   seller->arrival_times[seller->next_arrival_index] == local_time)
 			{
-				snprintf(cust->id, sizeof(cust->id), "H%03d", seller->customer_count);
+				Customer *cust = (Customer *)malloc(sizeof(Customer));
+				if (!cust)
+				{
+					perror("Failed to allocate Customer");
+					exit(EXIT_FAILURE);
+				}
+				cust->arrival_time = local_time;
+				seller->customer_count++;
+				if (seller->type == 'H')
+				{
+					snprintf(cust->id, sizeof(cust->id), "H%03d", seller->customer_count);
+				}
+				else if (seller->type == 'M')
+				{
+					snprintf(cust->id, sizeof(cust->id), "M%03d", seller->id * 100 + seller->customer_count);
+				}
+				else if (seller->type == 'L')
+				{
+					snprintf(cust->id, sizeof(cust->id), "L%03d", seller->id * 100 + seller->customer_count);
+				}
+				pthread_mutex_lock(&print_mutex);
+				printf("%d:%02d Seller %c%d: Customer %s arrives\n",
+					   local_time / 60, local_time % 60, seller->type, (seller->type == 'H' ? 0 : seller->id), cust->id);
+				fflush(stdout);
+				pthread_mutex_unlock(&print_mutex);
+				enqueue(seller->queue, cust);
+				seller->next_arrival_index++;
 			}
-			else if (seller->type == 'M')
-			{
-				snprintf(cust->id, sizeof(cust->id), "M%03d", seller->id * 100 + seller->customer_count);
-			}
-			else if (seller->type == 'L')
-			{
-				snprintf(cust->id, sizeof(cust->id), "L%03d", seller->id * 100 + seller->customer_count);
-			}
-			printf("%d:%02d Seller %c%d: Customer %s arrives\n",
-				   local_time / 60, local_time % 60, seller->type, (seller->type == 'H' ? 0 : seller->id), cust->id);
-			fflush(stdout);
-			enqueue(seller->queue, cust);
-			seller->next_arrival_index++;
 		}
 
-		// If currently busy, check whether the sale is finished.
+		// If currently busy, check if the sale is complete.
 		if (busy)
 		{
 			if (local_time >= service_end_time)
 			{
-				// Sale is complete.
 				current_customer->service_end_time = service_end_time;
 				int turnaround = service_end_time - current_customer->arrival_time;
 				seller->total_turnaround_time += turnaround;
+				pthread_mutex_lock(&print_mutex);
 				printf("%d:%02d Seller %c%d: Customer %s completed purchase and leaves\n",
 					   local_time / 60, local_time % 60, seller->type, (seller->type == 'H' ? 0 : seller->id), current_customer->id);
 				fflush(stdout);
+				pthread_mutex_unlock(&print_mutex);
 				free(current_customer);
 				current_customer = NULL;
 				busy = 0;
 			}
 		}
 
-		// If not busy and there is a waiting customer, try to serve them.
-		if (!busy && !isEmpty(seller->queue))
+		// If not busy and there is a waiting customer—and if we are still in the arrival window—start a new sale.
+		if (!busy && local_time <= 60 && !isEmpty(seller->queue))
 		{
 			Customer *cust = dequeue(seller->queue);
-			// Try to assign a seat.
 			pthread_mutex_lock(&seat_mutex);
 			int assigned = 0;
 			int row = -1, col = -1;
@@ -337,20 +349,19 @@ void *seller_thread(void *arg)
 
 			if (!assigned)
 			{
-				// No seat available: turn customer away.
+				pthread_mutex_lock(&print_mutex);
 				printf("%d:%02d Seller %c%d: Customer %s turned away (sold out)\n",
 					   local_time / 60, local_time % 60, seller->type, (seller->type == 'H' ? 0 : seller->id), cust->id);
 				fflush(stdout);
+				pthread_mutex_unlock(&print_mutex);
 				seller->turned_away++;
 				free(cust);
 			}
 			else
 			{
-				// Seat assigned: begin service.
 				cust->service_start_time = local_time;
 				int response = local_time - cust->arrival_time;
 				seller->total_response_time += response;
-				// Determine service duration based on seller type.
 				int service_duration = 0;
 				if (seller->type == 'H')
 					service_duration = (rand() % 2) + 1; // 1 or 2 minutes
@@ -361,11 +372,13 @@ void *seller_thread(void *arg)
 
 				cust->service_duration = service_duration;
 				service_end_time = local_time + service_duration;
+				pthread_mutex_lock(&print_mutex);
 				printf("%d:%02d Seller %c%d: Serving customer %s, assigned seat at row %d, col %d (Service time: %d minute%s)\n",
 					   local_time / 60, local_time % 60, seller->type, (seller->type == 'H' ? 0 : seller->id),
 					   cust->id, row + 1, col + 1, service_duration, service_duration > 1 ? "s" : "");
-				fflush(stdout);
 				print_seating_chart(local_time);
+				fflush(stdout);
+				pthread_mutex_unlock(&print_mutex);
 				busy = 1;
 				current_customer = cust;
 				seller->served++;
@@ -447,19 +460,15 @@ int main(int argc, char *argv[])
 
 	// Create the timer thread to drive simulation time.
 	pthread_t timer;
-	printf("\ncreating timer thread\n");
 	pthread_create(&timer, NULL, timer_thread, NULL);
 
-	printf("\nwaiting for threads\n");
 	// Wait for all seller threads to finish.
 	for (int i = 0; i < TOTAL_SELLERS; i++)
 	{
 		pthread_join(seller_threads[i], NULL);
-		printf("Thread joined: %d", i);
 		freeQueue(sellers[i].queue);
 		free(sellers[i].arrival_times);
 	}
-	printf("waiting for timer");
 	// Wait for the timer thread.
 	pthread_join(timer, NULL);
 
