@@ -1,7 +1,7 @@
 # CSEN 383 - Group 6 - Projects
-# Project 2 - Process Scheduling Utilities and FCFS Implementation
+## Project 2 - Process Scheduling Utilities and FCFS Implementation
 
-## Files:
+### Files:
 1. `process_utils.h`:
    - Contains the `Process` structure and function declarations for process creation and sorting.
 
@@ -32,11 +32,35 @@
 10. `main.c`:
     - The main program where all the scheduling algorithms are run for 5 trials.
 
-## How to Use:
+### How to Use:
 - Include `process_utils.h`,`queue_utils.h` and `simulation.h` in your scheduling algorithm file.
 - Link all files with `.c` during compilation.
 
-## Compilation Instructions:
+### Compilation Instructions:
   ```bash
   gcc -o main *.c
   ./main
+  ```
+
+
+## Project 3 - Multithreaded Ticket Sellers
+
+### Files:
+1. `queue_utils.h`:
+   - Contains the `Queue` structure and function declarations for queue creation and queue operations like enqueue and dequeue.
+  
+2. `queue_utils.c`:
+   - Implements the utility functions for queue operations like enqueue and dequeue.
+  
+3. `main.c`:
+    - The main program containing all definitions and declarations for functions involved in the multithreading process for simulating concert ticket selling.
+
+### How to Use:
+- Include `queue_utils.h` in the main.c file.
+- Link all files with `.c` during compilation.
+
+### Compilation Instructions:
+  ```bash
+  gcc -o main *.c
+  ./main
+  ```
