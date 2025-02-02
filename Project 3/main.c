@@ -6,9 +6,9 @@
 #include <time.h>
 #include "queue_utils.h"
 
-/* --- Global Simulation Variables --- */
+/* Global variables for simulation */
 
-// Global simulation time in minutes (0 to 60)
+// Current time in minutes (0 to 60)
 volatile int current_minute = 0;
 
 // Mutex and condition variable to control simulation time advancement
@@ -20,7 +20,7 @@ pthread_mutex_t print_mutex = PTHREAD_MUTEX_INITIALIZER;
 // Mutex to protect the global seating chart and seat assignment
 pthread_mutex_t seat_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-// Total seats available and seats sold count
+// Total seats available and count of sold seats
 #define ROWS 10
 #define COLS 10
 #define TOTAL_SEATS (ROWS * COLS)
@@ -31,7 +31,7 @@ int total_seats_sold = 0;
 // Each assigned seat holds the customer id.
 char seating[ROWS][COLS][8];
 
-// Structure to record a seat position.
+// Structure recording the seat position.
 typedef struct
 {
 	int row;
@@ -46,8 +46,7 @@ SeatPosition order_L[TOTAL_SEATS];
 // Global indices for the next seat to assign for each seller type.
 int index_H = 0, index_M = 0, index_L = 0;
 
-/* --- Seller Data Structure --- */
-
+/* Data structure for seller */
 typedef struct
 {
 	char type;				// 'H', 'M', or 'L'
@@ -64,15 +63,16 @@ typedef struct
 	int total_turnaround_time; // Sum of turnaround times (completion - arrival)
 } Seller;
 
-/* --- Function Prototypes --- */
+/* Function prototypes */
 void initialize_seating_chart();
 void initialize_orderings();
 void print_seating_chart(int time);
 void *timer_thread(void *arg);
 void *seller_thread(void *arg);
+int compare(const void *a, const void *b);
 void generate_arrival_times(Seller *seller);
 
-/* --- Utility: Print current seating chart --- */
+/* Utility function for printing the current seating chart */
 void print_seating_chart(int time)
 {
 	printf("%d:%02d Concert Seating Chart:\n", time / 60, time % 60);
@@ -87,7 +87,7 @@ void print_seating_chart(int time)
 	printf("\n");
 }
 
-/* --- Initialize the seating chart with "----" (empty seat) --- */
+/* Initialize the seating chart with "----" (empty seat) */
 void initialize_seating_chart()
 {
 	for (int i = 0; i < ROWS; i++)
@@ -95,7 +95,7 @@ void initialize_seating_chart()
 			strcpy(seating[i][j], "----");
 }
 
-/* --- Initialize the seat assignment order for each seller type --- */
+/* Initialize the seat assignment order for each seller type */
 void initialize_orderings()
 {
 	int pos = 0;
@@ -122,8 +122,8 @@ void initialize_orderings()
 	}
 	pos = 0;
 	// For medium-priced sellers (M): custom order:
-	// Order rows: 5,6,4,7,3,8,2,9,1,10 in 1-indexed terms.
-	// In 0-indexed, that becomes: 4,5,3,6,2,7,1,8,0,9.
+	// Row order is: 5,6,4,7,3,8,2,9,1,10 in 1-indexed terms.
+	// In 0-indexed terms, the order is: 4,5,3,6,2,7,1,8,0,9.
 	int m_order[ROWS] = {4, 5, 3, 6, 2, 7, 1, 8, 0, 9};
 	for (int r = 0; r < ROWS; r++)
 	{
@@ -137,7 +137,7 @@ void initialize_orderings()
 	}
 }
 
-/* --- Timer thread: advances simulation time once every 0.1 second --- */
+/* Timer thread: advances simulation time once every 0.1 second */
 void *timer_thread(void *arg)
 {
 	(void)arg; // unused
@@ -159,7 +159,13 @@ void *timer_thread(void *arg)
 	return NULL;
 }
 
-/* --- Generate random arrival times (in minutes [0,59]) for a seller and sort them --- */
+/* Compare two integers to check for which one is the smallest */
+int compare(const void *a, const void *b)
+{
+	return (*(int *)a - *(int *)b);
+}
+
+/* Generate random arrival times (in minutes [0,59]) for a seller and sort them */
 void generate_arrival_times(Seller *seller)
 {
 	seller->arrival_times = (int *)malloc(seller->num_customers * sizeof(int));
@@ -172,19 +178,8 @@ void generate_arrival_times(Seller *seller)
 	{
 		seller->arrival_times[i] = rand() % 60;
 	}
-	// Sort the arrival times (simple bubble sort for small N)
-	for (int i = 0; i < seller->num_customers - 1; i++)
-	{
-		for (int j = i + 1; j < seller->num_customers; j++)
-		{
-			if (seller->arrival_times[i] > seller->arrival_times[j])
-			{
-				int temp = seller->arrival_times[i];
-				seller->arrival_times[i] = seller->arrival_times[j];
-				seller->arrival_times[j] = temp;
-			}
-		}
-	}
+	// Sort the arrival times
+	qsort(seller->arrival_times, seller->num_customers, sizeof(seller->arrival_times[0]), compare);
 }
 
 void *seller_thread(void *arg)
@@ -283,7 +278,7 @@ void *seller_thread(void *arg)
 			}
 		}
 
-		// If not busy and there is a waiting customer—and if we are still in the arrival window—start a new sale.
+		// If not busy and there is a waiting customer, and if we are still in the arrival window, start a new sale.
 		if (!busy && local_time <= 60 && !isEmpty(seller->queue))
 		{
 			Customer *cust = dequeue(seller->queue);
@@ -388,7 +383,7 @@ void *seller_thread(void *arg)
 	return NULL;
 }
 
-/* --- Main Function --- */
+/* Main function */
 int main(int argc, char *argv[])
 {
 	if (argc != 2)
@@ -396,7 +391,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "Usage: %s <number_of_customers_per_seller>\n", argv[0]);
 		exit(EXIT_FAILURE);
 	}
-	int N = atoi(argv[1]);
+	int N = atoi(argv[1]); // The number of customers per ticket seller
 	if (N <= 0)
 	{
 		fprintf(stderr, "Number of customers must be a positive integer.\n");
@@ -405,6 +400,7 @@ int main(int argc, char *argv[])
 
 	srand(0); // Seed the random number generator
 
+	// Initialize the seating chart and the orderings
 	initialize_seating_chart();
 	initialize_orderings();
 
@@ -472,7 +468,7 @@ int main(int argc, char *argv[])
 	// Wait for the timer thread.
 	pthread_join(timer, NULL);
 
-	// Print summary statistics aggregated by seller type.
+	// Print summary statistics (total customers served, customers turned away, response time, turnaround time and throughput) aggregated by seller type.
 	int total_served_H = 0, total_served_M = 0, total_served_L = 0;
 	int total_turned_H = 0, total_turned_M = 0, total_turned_L = 0;
 	int total_response_H = 0, total_response_M = 0, total_response_L = 0;
@@ -500,26 +496,29 @@ int main(int argc, char *argv[])
 
 	printf("=== Simulation Summary ===\n");
 	if (total_served_H > 0)
-		printf("High-priced (H): Served %d customers, Turned away %d, Average Response Time: %.2f, Average Turnaround Time: %.2f\n",
+		printf("High-priced (H): Served %d customers, Turned away %d, Average Response Time: %.2f, Average Turnaround Time: %.2f\n, Throughput: %.2f\n",
 			   total_served_H, total_turned_H,
 			   total_response_H / (float)total_served_H,
-			   total_turnaround_H / (float)total_served_H);
+			   total_turnaround_H / (float)total_served_H,
+			   (float)total_served_H / 60);
 	else
 		printf("High-priced (H): Served 0 customers, Turned away %d\n", total_turned_H);
 
 	if (total_served_M > 0)
-		printf("Medium-priced (M): Served %d customers, Turned away %d, Average Response Time: %.2f, Average Turnaround Time: %.2f\n",
+		printf("Medium-priced (M): Served %d customers, Turned away %d, Average Response Time: %.2f, Average Turnaround Time: %.2f\n, Throughput: %.2f\n",
 			   total_served_M, total_turned_M,
 			   total_response_M / (float)total_served_M,
-			   total_turnaround_M / (float)total_served_M);
+			   total_turnaround_M / (float)total_served_M,
+			   (float)total_served_M / 60);
 	else
 		printf("Medium-priced (M): Served 0 customers, Turned away %d\n", total_turned_M);
 
 	if (total_served_L > 0)
-		printf("Low-priced (L): Served %d customers, Turned away %d, Average Response Time: %.2f, Average Turnaround Time: %.2f\n",
+		printf("Low-priced (L): Served %d customers, Turned away %d, Average Response Time: %.2f, Average Turnaround Time: %.2f\n, Throughput: %.2f\n",
 			   total_served_L, total_turned_L,
 			   total_response_L / (float)total_served_L,
-			   total_turnaround_L / (float)total_served_L);
+			   total_turnaround_L / (float)total_served_L,
+			   (float)total_served_L / 60);
 	else
 		printf("Low-priced (L): Served 0 customers, Turned away %d\n", total_turned_L);
 
