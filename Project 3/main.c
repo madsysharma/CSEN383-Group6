@@ -493,14 +493,14 @@ int main(int argc, char *argv[])
 		total_response_L += sellers[i].total_response_time;
 		total_turnaround_L += sellers[i].total_turnaround_time;
 	}
-
+	
 	printf("=== Simulation Summary ===\n");
 	if (total_served_H > 0)
 		printf("High-priced (H): Served %d customers, Turned away %d, Average Response Time: %.2f, Average Turnaround Time: %.2f\n, Throughput: %.2f\n",
 			   total_served_H, total_turned_H,
 			   total_response_H / (float)total_served_H,
 			   total_turnaround_H / (float)total_served_H,
-			   (float)total_served_H / 60);
+			   (float)total_served_H / current_minute);
 	else
 		printf("High-priced (H): Served 0 customers, Turned away %d\n", total_turned_H);
 
@@ -509,7 +509,7 @@ int main(int argc, char *argv[])
 			   total_served_M, total_turned_M,
 			   total_response_M / (float)total_served_M,
 			   total_turnaround_M / (float)total_served_M,
-			   (float)total_served_M / 60);
+			   (float)total_served_M / current_minute);
 	else
 		printf("Medium-priced (M): Served 0 customers, Turned away %d\n", total_turned_M);
 
@@ -518,7 +518,7 @@ int main(int argc, char *argv[])
 			   total_served_L, total_turned_L,
 			   total_response_L / (float)total_served_L,
 			   total_turnaround_L / (float)total_served_L,
-			   (float)total_served_L / 60);
+			   (float)total_served_L / current_minute);
 	else
 		printf("Low-priced (L): Served 0 customers, Turned away %d\n", total_turned_L);
 
