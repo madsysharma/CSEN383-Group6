@@ -494,7 +494,11 @@ int main(int argc, char *argv[])
 		total_turnaround_L += sellers[i].total_turnaround_time;
 	}
 	
-	printf("=== Simulation Summary ===\n");
+	printf("\n\n");
+	printf("=== SIMULATION SUMMARY ===\n");
+	printf("=== Final Seating Chart ===\n");
+	print_seating_chart(current_minute);
+	printf("=== Calculated Statistics ===\n");
 	if (total_served_H > 0)
 		printf("High-priced (H): Served %d customers, Turned away %d, Average Response Time: %.2f, Average Turnaround Time: %.2f\n, Throughput: %.2f\n",
 			   total_served_H, total_turned_H,
