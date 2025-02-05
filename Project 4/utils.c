@@ -151,7 +151,7 @@ Process dequeue(Queue* queue) {
   		}
   		else
   		{
-  			printf("--                  -");
+  			printf("---                  ---\n");
   		}
   		counter++;
   		if((counter % 10) == 0){
