@@ -15,7 +15,6 @@
 typedef struct page {
 	int process_id;
 	int page_num;
-	char* mem_map;
 	struct page* next;
 	float brought_time;
 	float last_referenced;

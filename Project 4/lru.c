@@ -42,7 +42,7 @@ void removeFromQueue(Queue* q, Process* p)
 }
 
 
-
+// This function runs the Least Recently Used (LRU) replacement algorithm
 void lru(PageList *plist) 
 {
 	printf("Starting LRU\n");
@@ -60,7 +60,7 @@ void lru(PageList *plist)
 		if (current->last_referenced < lru_time) 
 		{
 			to_remove = current;
-			lru_time = (float)current->last_referenced;
+			lru_time = (float)current->last_referenced; // Finds the least recently used page
 		}
 		current = current->next;
 	}
@@ -78,7 +78,7 @@ void lru(PageList *plist)
 
 
 
-
+// This is the driver function for simulating LRU on a set of generated processes and an initialized free page list
 void lruSimulation(Process processes[], int numProcesses, PageList *plist, int* swaps, float* hit_ratio)
 {
 	if (plist == NULL || plist->head == NULL || processes == NULL) 
@@ -86,10 +86,10 @@ void lruSimulation(Process processes[], int numProcesses, PageList *plist, int* 
 		printf("[ERROR] plist or plist->head or processes is NULL in lruSimulation\n");
 		exit(EXIT_FAILURE);
 	}
-	int swap_count = 0;
-	int hit_count = 0;
-	int miss_count = 0;
-	int track_idx = 0;
+	int swap_count = 0; // Tracks the number of successful swaps
+	int hit_count = 0; // Tracks the number of hits
+	int miss_count = 0; // Tracks the number of misses
+	int track_idx = 0; // Tracks the number of processes in the ready queue having their pages present and loaded
 	Queue *readyQueue = createQueue(numProcesses);
 	for(int i = 0; i < numProcesses; i++)
 	{
