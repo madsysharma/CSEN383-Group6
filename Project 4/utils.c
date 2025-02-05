@@ -147,11 +147,11 @@ Process dequeue(Queue* queue) {
   	{
   		if(current->process_id > 0)
   		{
-  			printf("|*| pid:%03d page_num:%03d count:%03d last_referenced:%02f |*|\n", current->process_id, current->page_num, current->count, current->last_referenced);
+  			printf("--- PID:%03d Page Number:%03d Count:%03d Last Referenced:%02f ---\n", current->process_id, current->page_num, current->count, current->last_referenced);
   		}
   		else
   		{
-  			printf("|*                  |");
+  			printf("--                  -");
   		}
   		counter++;
   		if((counter % 10) == 0){
