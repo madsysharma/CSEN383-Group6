@@ -226,8 +226,15 @@ void lruSimulation(Process processes[], int numProcesses, PageList *plist, int* 
 				}
 			}
 		}
+		if (t % 10 == 0)
+		{
+			printf("[DEBUG] Memory state at time %d seconds:\n", t / 10);
+			printMemoryMap(plist); 
+		}
 		usleep(900);
 	}
+	printf("[DEBUG] Memory state at the end of the run:\n");
+    printMemoryMap(plist); 
 	*swaps = swap_count;
 	*hit_ratio = (float)hit_count / (hit_count + miss_count);
 	printf("[DEBUG] Total number of sucessful swaps: %d, hit ratio: %.2f\n", *swaps, *hit_ratio);

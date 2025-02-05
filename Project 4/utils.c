@@ -14,9 +14,9 @@ void generateProcesses(Process* processes, int numProcesses) {
 	for (int i = 0; i < numProcesses; i++) {
 		processes[i].id = i+1;
 		processes[i].num_pages = page_counts[rand() % 4];
-        processes[i].arrival_time = rand() % 60;       // Random arrival time (0–59)
-        processes[i].service_time = (rand() % 5) + 1;     // Random runtime (1–5)
-        processes[i].starting_page_num = 0; 
+		processes[i].arrival_time = rand() % 60;       // Random arrival time (0–59)
+		processes[i].service_time = (rand() % 5) + 1;     // Random runtime (1–5)
+		processes[i].starting_page_num = 0; 
         if (processes[i].service_time <= 0) 
         {
         	printf("Invalid runtime for process %d\n", processes[i].id);
@@ -317,4 +317,27 @@ void freePageList(PageList* plist)
         free(temp);  // Free the Page struct itself
     }
     free(plist);
+}
+
+// Printing the memory map
+void printMemoryMap(PageList *plist)
+{
+	char mem_map[501];
+	memset(mem_map, '.', sizeof(mem_map));
+	Page* current = plist->head;
+	int pos = 0;
+	while(current != NULL && pos < sizeof(mem_map) - 5)
+	{
+		if(current->process_id != -1)
+		{
+			pos += snprintf(&mem_map[pos], sizeof(mem_map) - pos, "%d ", current->process_id);
+		}
+		else
+		{
+			pos += snprintf(&mem_map[pos], sizeof(mem_map) - pos, ". ");
+		}
+		current = current->next;
+	}
+	mem_map[pos]='\0';
+	printf("[MEMORY MAP] %s\n", mem_map);
 }

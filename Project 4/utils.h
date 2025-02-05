@@ -52,6 +52,7 @@ Page* getPageByID(PageList* plist, int pid, int pg_num);
 int ifExistsInMemory(PageList* plist, int pid, int pg_num);
 int getNextPage(int curr_page_num, int max_page_size);
 void freePageList(PageList* plist);
+void printMemoryMap(PageList* plist);
 
 // Queue functions
 Queue* createQueue(int capacity);
