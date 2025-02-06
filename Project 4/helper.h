@@ -19,3 +19,7 @@ void lruSimulation(Process processes[], int numProcesses, PageList *plist, int *
 // LFU function prototypes
 void lfu(PageList *plist);
 void lfuSimulation(Process processes[], int numProcesses, PageList *plist, int *swapped_in, float *hit_ratio);
+
+// Random Pick prototypes
+void randomPick(PageList* plist);
+void randomPickSimulation(Process processes[], int numProcesses, PageList* plist, int* swaps, float* hit_ratio);

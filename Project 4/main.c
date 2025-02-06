@@ -28,6 +28,8 @@ int main(int argc, char *argv[])
 	float lru_hit_ratios[5] = {0.0, 0.0, 0.0, 0.0, 0.0};
 	int lfu_total_swaps[5] = {0, 0, 0, 0, 0};
 	float lfu_hit_ratios[5] = {0.0, 0.0, 0.0, 0.0, 0.0};
+	int rp_total_swaps[5] = {0, 0, 0, 0, 0};
+	float rp_hit_ratios[5] = {0.0, 0.0, 0.0, 0.0, 0.0};
 
 	for (int i = 0; i < runs; i++)
 	{
@@ -77,6 +79,21 @@ int main(int argc, char *argv[])
 		free(lfuProcesses);
 		freePageList(lfu_plist);
 
+		// ---------------- Random Pick Simulation ----------------
+		// Create a copy of the processes array for Random Pick simulation
+		Process *rpProcesses = (Process *)malloc(TOTAL_PROCESSES * sizeof(Process));
+		copyProcesses(rpProcesses, processes, TOTAL_PROCESSES);
+		// Allocate a new page list for Random Pick simulation
+		PageList *rp_plist = (PageList *)malloc(sizeof(PageList));
+		initPageList(rp_plist);
+		int rp_run_swaps = 0;
+		float rp_run_ratio = 0.0;
+		lruSimulation(rpProcesses, TOTAL_PROCESSES, rp_plist, &rp_run_swaps, &rp_run_ratio);
+		rp_total_swaps[i] = rp_run_swaps;
+		rp_hit_ratios[i] = rp_run_ratio;
+		free(rpProcesses);
+		freePageList(rp_plist);
+
 		free(processes);
 		printf("\n");
 	}
@@ -102,6 +119,17 @@ int main(int argc, char *argv[])
 	}
 	printf("LFU Simulation: Average number of processes swapped-in = %.2f, average hit ratio = %.2f\n",
 		   (float)avg_lfu_swaps / runs, avg_lfu_hit_ratio / runs);
+
+	// Print Random Pick simulation averages
+	int avg_rp_swaps = 0;
+	float avg_rp_hit_ratio = 0.0;
+	for (int k = 0; k < runs; k++)
+	{
+		avg_rp_swaps += rp_total_swaps[k];
+		avg_rp_hit_ratio += rp_hit_ratios[k];
+	}
+	printf("Random Pick Simulation: Average number of processes swapped-in = %.2f, average hit ratio = %.2f\n",
+		   (float)avg_rp_swaps / runs, avg_rp_hit_ratio / runs);
 
 	return 0;
 }
