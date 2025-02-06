@@ -1,47 +1,5 @@
 #include "helper.h"
 
-// This function dequeues the completed process without affecting the rest of the ready queue
-void removeFromQueue(Queue* q, Process* p)
-{
-	Queue* temp = createQueue(q->capacity);
-	int found = 0;
-	printf("[DEBUG] Queue before removing Process %d:\n", p->id);
-	for (int i = 0; i < q->size; i++) 
-	{
-		int idx = (q->front + i) % q->capacity;
-		printf("[DEBUG] Queue Process ID: %d\n", q->processes[idx].id);
-	}
-	while(!isQueueEmpty(q))
-	{
-		Process removed = dequeue(q);
-		if(removed.id != p->id)
-		{
-			enqueue(temp, removed);
-		}
-		else
-		{
-			printf("[DEBUG] Process %d found. Removing it.\n", p->id);
-			found = 1;
-		}
-	}
-	if (!found) 
-	{
-		printf("[WARNING] Process %d not found in queue.\n", p->id);
-	}
-	while(!isQueueEmpty(temp))
-	{
-		enqueue(q,dequeue(temp));
-	}
-	printf("[DEBUG] Queue after removing Process %d:\n", p->id);
-	for (int i = 0; i < q->size; i++) 
-	{
-		int idx = (q->front + i) % q->capacity;
-		printf("[DEBUG] Queue Process ID: %d\n", q->processes[idx].id);
-	}
-	freeQueue(temp);
-}
-
-
 // This function runs the Least Recently Used (LRU) replacement algorithm
 void lru(PageList *plist) 
 {

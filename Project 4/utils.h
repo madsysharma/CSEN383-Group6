@@ -61,6 +61,7 @@ void enqueue(Queue* queue, Process process);
 Process dequeue(Queue* queue);
 void freeQueue(Queue* queue);
 int ifExistsInQueue(Queue* queue, int pid);
+void removeFromQueue(Queue *q, Process *p);
 
 // Process generation function
 void generateProcesses(Process* processes, int numProcesses);

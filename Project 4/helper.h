@@ -13,7 +13,6 @@
 #include "utils.h"
 
 // LRU function prototypes
-void removeFromQueue(Queue *q, Process *p);
 void lru(PageList *plist);
 void lruSimulation(Process processes[], int numProcesses, PageList *plist, int *swaps, float *hit_ratio);
 
