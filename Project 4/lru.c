@@ -129,7 +129,7 @@ void lruSimulation(Process processes[], int numProcesses, PageList *plist, int* 
 						free_page->page_num = readyQueue->processes[idx].starting_page_num;
 						free_page->brought_time = (float)(t + (0.1 * k));
 						free_page->last_referenced = (float)(t + (0.1 * k));
-						free_page->count = 0;
+						free_page->count = 1;
 						swap_count += 1;
 						miss_count += 1;
 					}
