@@ -46,7 +46,7 @@ void randomPick(PageList *plist)
     int r = rand() % inUseCount;
     Page* victim = inUsePages[r];
     
-    printf("[DEBUG][RandomPick] Evicting Page %d from Process %d.\n",
+    printf("[DEBUG] Random Pick evicting Page %d from Process %d.\n",
            victim->page_num, victim->process_id);
     
     // 4) Free that page
@@ -262,7 +262,7 @@ void randomPickSimulation(Process processes[], int numProcesses, PageList *plist
     {
         *hit_ratio = 0.0f;
     }
-    printf("[DEBUG][RandomPickSim] # Swaps: %d | Hit Ratio: %.2f\n", *swaps, *hit_ratio);
+    printf("[DEBUG] Total number of sucessful swaps for Random Pick: %d, hit ratio: %.2f\n", *swaps, *hit_ratio);
 
     
     freeQueue(readyQueue);

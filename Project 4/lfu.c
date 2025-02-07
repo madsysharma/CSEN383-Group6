@@ -235,8 +235,8 @@ void lfuSimulation(Process processes[], int numProcesses, PageList *plist, int *
     }
     printf("[DEBUG] Final memory state at the end of the run:\n");
     printMemoryMap(plist);
-    *swapped_in = process_swapped_in_count;
-    *hit_ratio = (hit_count + miss_count) > 0 ? (float)hit_count / (hit_count + miss_count) : 0.0;
-    printf("[DEBUG] Total page swaps: %d, Hit ratio: %.2f\n", swap_count, *hit_ratio);
+    *swapped_in = swap_count;
+    *hit_ratio = (hit_count + miss_count) > 0 ? (float)hit_count / (hit_count + miss_count) : 0.0f;
+    printf("[DEBUG] Total number of sucessful swaps for LFU: %d, hit ratio: %.2f\n", swap_count, *hit_ratio);
     freeQueue(readyQueue);
 }

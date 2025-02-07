@@ -12,7 +12,7 @@ void lru(PageList *plist)
 
 	Page* current = plist->head;
 	Page* to_remove = NULL;
-	float lru_time = current->last_referenced;
+	float lru_time = current->last_referenced; // Tracks the reference time of the least recently used page
 	while (current != NULL) 
 	{
 		if (current->last_referenced < lru_time) 
@@ -28,7 +28,7 @@ void lru(PageList *plist)
 		printf("[ERROR] No valid LRU page found. Exiting...\n");
 		return;
 	}
-	printf("[DEBUG] Evicting Page %d from Process %d, Last Referenced: %.2f\n", to_remove->page_num, to_remove->process_id, to_remove->last_referenced);
+	printf("[DEBUG] LRU evicting Page %d from Process %d, Last Referenced: %.2f\n", to_remove->page_num, to_remove->process_id, to_remove->last_referenced);
 
 	to_remove->process_id = -1;
 	to_remove->page_num = -1;
@@ -194,6 +194,7 @@ void lruSimulation(Process processes[], int numProcesses, PageList *plist, int* 
 	printf("[DEBUG] Memory state at the end of the run:\n");
     printMemoryMap(plist); 
 	*swaps = swap_count;
-	*hit_ratio = (float)hit_count / (hit_count + miss_count);
-	printf("[DEBUG] Total number of sucessful swaps: %d, hit ratio: %.2f\n", *swaps, *hit_ratio);
+	*hit_ratio = (hit_count + miss_count) > 0 ? (float)hit_count / (hit_count + miss_count) : 0.0f;
+	printf("[DEBUG] Total number of sucessful swaps for LRU: %d, hit ratio: %.2f\n", *swaps, *hit_ratio);
+	freeQueue(readyQueue);
 }

@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
 		avg_lru_swaps += lru_total_swaps[k];
 		avg_lru_hit_ratio += lru_hit_ratios[k];
 	}
-	printf("LRU Simulation: Average number of successful swaps = %.2f, average hit ratio = %.2f\n",
+	printf("LRU Simulation: Average number of successful swaps = %.2f, average hit ratio = %.5f\n",
 		   (float)avg_lru_swaps / runs, avg_lru_hit_ratio / runs);
 
 	// Print LFU simulation averages
@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
 		avg_lfu_swaps += lfu_total_swaps[k];
 		avg_lfu_hit_ratio += lfu_hit_ratios[k];
 	}
-	printf("LFU Simulation: Average number of processes swapped-in = %.2f, average hit ratio = %.2f\n",
+	printf("LFU Simulation: Average number of processes swapped-in = %.2f, average hit ratio = %.5f\n",
 		   (float)avg_lfu_swaps / runs, avg_lfu_hit_ratio / runs);
 
 	// Print Random Pick simulation averages
@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
 		avg_rp_swaps += rp_total_swaps[k];
 		avg_rp_hit_ratio += rp_hit_ratios[k];
 	}
-	printf("Random Pick Simulation: Average number of processes swapped-in = %.2f, average hit ratio = %.2f\n",
+	printf("Random Pick Simulation: Average number of processes swapped-in = %.2f, average hit ratio = %.5f\n",
 		   (float)avg_rp_swaps / runs, avg_rp_hit_ratio / runs);
 
 	return 0;
