@@ -1,7 +1,6 @@
 #ifndef HELPER_H
 #define HELPER_H
 #endif
-
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -23,3 +22,6 @@ void lfuSimulation(Process processes[], int numProcesses, PageList *plist, int *
 // Random Pick prototypes
 void randomPick(PageList* plist);
 void randomPickSimulation(Process processes[], int numProcesses, PageList* plist, int* swaps, float* hit_ratio);
+
+Page* fifo(PageList *plist);
+void fifoSimulation(Process processes[],int numProcesses,PageList *plist,int *swaps, float *hit_ratio);
