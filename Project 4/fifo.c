@@ -1,202 +1,211 @@
-// fifo.c
-#include <stdio.h>
-#include <stdlib.h>
-#include <float.h>
-#include <string.h>
-#include "utils.h"
 #include "helper.h"
 
-//---------------------------------------------------------------------
-// Helper: Convert a process ID to a process name (a single character).
-// For example, process ID 1 => 'A', 2 => 'B', …, 27 => 'A', etc.
-//---------------------------------------------------------------------
-static char getProcessName(int id) {
-    return 'A' + ((id - 1) % 26);
-}
-
-//---------------------------------------------------------------------
-// Helper: Print the current memory map of 100 pages.
-// Each page is represented by the process name (if in use) or a dot if free.
-//---------------------------------------------------------------------
-static void printMemoryMapCustom(PageList *plist) {
-    char mem_map[TOTAL_PAGE_REFS + 1];
-    int pos = 0;
-    Page *current = plist->head;
-    while (current != NULL && pos < TOTAL_PAGE_REFS) {
-        if (current->process_id != -1)
-            mem_map[pos] = getProcessName(current->process_id);
-        else
-            mem_map[pos] = '.';
-        pos++;
-        current = current->next;
+// FIFO page replacement: removes the oldest loaded page (the one brought into memory first)
+void fifo(PageList *plist) 
+{
+    if (plist == NULL || plist->head == NULL) 
+    {
+        printf("[ERROR] plist or plist->head is NULL in fifo\n");
+        exit(EXIT_FAILURE);
     }
-    mem_map[pos] = '\0';
-    printf("Memory Map: %s\n", mem_map);
-}
 
-//---------------------------------------------------------------------
-// FIFO Victim Selection Function
-//
-// Scans the physical memory (PageList) and selects the page with the 
-// oldest brought_time (i.e. the one that was loaded earliest) for eviction.
-//---------------------------------------------------------------------
-Page* fifo(PageList *plist) {
-    if (plist == NULL) {
-        fprintf(stderr, "[FIFO] Error: PageList is NULL\n");
-        return NULL;
-    }
-    
-    Page *current = plist->head;
-    Page *victim = NULL;
-    float oldestTime = FLT_MAX;
-    
-    while (current != NULL) {
-        // Only consider pages that are in use (process_id != -1)
-        if (current->process_id != -1 && current->brought_time < oldestTime) {
-            oldestTime = current->brought_time;
-            victim = current;
+    Page* current = plist->head;
+    Page* to_evict = NULL;
+    float oldest_time = current->brought_time; // Track oldest page brought into memory
+
+    while (current != NULL) 
+    {
+        if (current->brought_time < oldest_time) 
+        {
+            to_evict = current;
+            oldest_time = current->brought_time; // Find the page brought in first
         }
         current = current->next;
     }
-    
-    if (victim != NULL) {
-        printf("[FIFO] Selected victim: Process %d, Page %d (brought_time = %.2f)\n", 
-               victim->process_id, victim->page_num, victim->brought_time);
+
+    if (to_evict == NULL) 
+    {
+        printf("[ERROR] No valid FIFO page found. Exiting...\n");
+        return;
     }
-    
-    return victim;
+
+    printf("[DEBUG] FIFO evicting Page %d from Process %d, Brought Time: %.2f\n", 
+           to_evict->page_num, to_evict->process_id, to_evict->brought_time);
+
+    // Evict the page
+    to_evict->process_id = -1;
+    to_evict->page_num = -1;
 }
 
-//---------------------------------------------------------------------
-// FIFO Simulation Function
-//
-// This function simulates the FIFO page replacement algorithm for the 
-// entire workload. It goes through the list of generated processes (assumed
-// to be sorted by arrival_time) and simulates each process’s execution.
-// For each process that arrives before TOTAL_DURATION (60 sec) and for which 
-// at least 4 free pages exist, the process is swapped in. Then, every 0.1 sec,
-// the process makes a memory reference (using getNextPage) until its service time
-// expires. Detailed records for each memory reference are printed.
-// Additionally, whenever a process is swapped in or completes, a record is printed 
-// along with the current memory map.
-//---------------------------------------------------------------------
-void fifoSimulation(Process processes[], int numProcesses, PageList *plist, int *swaps, float *hit_ratio) {
-    float current_time = 0.0;
-    int swapped_in = 0;
-    int hits = 0, misses = 0;
-    
-    printf("[FIFO] Starting FIFO Simulation (1-minute run)...\n");
-    
-    // Loop through each process (processes are assumed to be sorted by arrival_time)
-    for (int i = 0; i < numProcesses; i++) {
-        // Only process jobs arriving within the 60-second simulation window
-        if (processes[i].arrival_time > TOTAL_DURATION)
+// FIFO Simulation: follows the same structure as LRU and LFU simulations
+void fifoSimulation(Process processes[], int numProcesses, PageList *plist, int* swaps, float* hit_ratio)
+{
+    if (plist == NULL || plist->head == NULL || processes == NULL) 
+    {
+        printf("[ERROR] plist or plist->head or processes is NULL in fifoSimulation\n");
+        exit(EXIT_FAILURE);
+    }
+
+    int swap_count = 0;  
+    int hit_count = 0;   
+    int miss_count = 0;  
+    int track_idx = 0;  
+
+    Queue *readyQueue = createQueue(numProcesses);
+    for(int i = 0; i < numProcesses; i++)
+    {
+        enqueue(readyQueue, processes[i]);
+    }
+
+    for(int t = 0; t < TOTAL_DURATION; t++)
+    {
+        if(readyQueue->size == 0)
+        {
+            printf("[DEBUG] All processes have finished execution. Printing statistics...\n");
             break;
-        
-        // Advance simulation time to the process's arrival time if necessary
-        if (processes[i].arrival_time > current_time)
-            current_time = processes[i].arrival_time;
-        
-        // Check if there are at least 4 free pages available before swapping in
-        if (!checkForFreePages(plist, 4)) {
-            printf("[FIFO] Not enough free pages for Process %d at time %.2f\n",
-                   processes[i].id, current_time);
-            continue;
         }
-        
-        // Swap in the process: load its initial page (page 0)
-        Page *freePage = getFreePage(plist);
-        if (freePage != NULL) {
-            freePage->process_id = processes[i].id;
-            freePage->page_num = 0;
-            freePage->brought_time = current_time;
-            freePage->last_referenced = current_time;
-            freePage->count = 1;
-            swapped_in++;
-            
-            // Print process "Enter" record with memory map
-            printf("\n[ENTER] Time: %.2f, Process %c, Size: %d pages, Service Time: %d sec\n", 
-                   current_time, getProcessName(processes[i].id), processes[i].num_pages, processes[i].service_time);
-            printMemoryMapCustom(plist);
-        } else {
-            printf("[FIFO] No free page available for Process %d at time %.2f\n",
-                   processes[i].id, current_time);
-            continue;
+
+        while(track_idx < TOTAL_PROCESSES && readyQueue->processes[(readyQueue->front + track_idx) % readyQueue->capacity].arrival_time <= t)
+        {
+            int curr_idx = (readyQueue->front + track_idx) % readyQueue->capacity;
+            Process* curr_proc = &readyQueue->processes[curr_idx];
+
+            if(checkForFreePages(plist, 4))
+            {
+                printf("[DEBUG] Found at least four free pages for Process %d!\n", curr_proc->id);
+                Page* p = getFreePage(plist);
+                p->process_id = curr_proc->id;
+                p->page_num = curr_proc->starting_page_num;
+                p->brought_time = (float)t;
+                p->last_referenced = (float)t;
+                p->count = 1;
+                swap_count++;
+                track_idx++;
+
+                printf("<%d, Process %d, Enter, Size: %d, Service Duration: %d, Memory Map: ", 
+                       t, curr_proc->id, curr_proc->num_pages, curr_proc->service_time);
+                printMemoryMap(plist);
+                printf(">\n");
+            }
+            else
+            {
+                break;
+            }
         }
-        
-        int current_page = 0;
-        int num_references = processes[i].service_time * 10; // 10 references per second
-        
-        // Simulate each memory reference (every 0.1 sec)
-        for (int ref = 0; ref < num_references; ref++) {
-            int next_page = getNextPage(current_page, processes[i].num_pages);
-            char evictedInfo[50] = "None";
-            int pageInMemory = ifExistsInMemory(plist, processes[i].id, next_page);
-            
-            if (pageInMemory) {
-                // Page hit
-                hits++;
-                Page *page = getPageByID(plist, processes[i].id, next_page);
-                if (page != NULL) {
-                    page->last_referenced = current_time;
-                    page->count++;
-                }
-                printf("Time: %.2f, Process: %c, Page: %d, InMemory: YES, Evicted: %s\n", 
-                       current_time, getProcessName(processes[i].id), next_page, evictedInfo);
-            } else {
-                // Page miss
-                misses++;
-                // Try to get a free page
-                Page *freePg = getFreePage(plist);
-                if (freePg != NULL) {
-                    freePg->process_id = processes[i].id;
-                    freePg->page_num = next_page;
-                    freePg->brought_time = current_time;
-                    freePg->last_referenced = current_time;
-                    freePg->count = 1;
-                    strcpy(evictedInfo, "None");
-                    printf("Time: %.2f, Process: %c, Page: %d, InMemory: NO, Evicted: %s\n", 
-                           current_time, getProcessName(processes[i].id), next_page, evictedInfo);
-                } else {
-                    // No free page available; use FIFO to select a victim
-                    Page *victim = fifo(plist);
-                    if (victim != NULL) {
-                        snprintf(evictedInfo, sizeof(evictedInfo), "Process %c, Page %d", 
-                                 getProcessName(victim->process_id), victim->page_num);
-                        // Evict the victim and load the new page
-                        victim->process_id = processes[i].id;
-                        victim->page_num = next_page;
-                        victim->brought_time = current_time;
-                        victim->last_referenced = current_time;
-                        victim->count = 1;
+
+        for(int k = 0; k < 10; k++)
+        {
+            for(int l = 0; l < track_idx; l++)
+            {
+                int idx = (readyQueue->front + l) % readyQueue->capacity;
+                Process* curr_proc = &readyQueue->processes[idx];
+
+                if(curr_proc->service_time > 0 && ifExistsInQueue(readyQueue, curr_proc->id))
+                {
+                    int next_page = getNextPage(curr_proc->starting_page_num, curr_proc->num_pages);
+                    curr_proc->starting_page_num = next_page;
+
+                    if(ifExistsInMemory(plist, curr_proc->id, next_page))
+                    {
+                        Page* page_ptr = getPageByID(plist, curr_proc->id, next_page);
+                        page_ptr->count++;
+                        page_ptr->last_referenced = (float)t;
+                        hit_count++;
+
+                        printf("<%d, Process %d, Referenced Page %d, HIT, No eviction>\n", 
+                               t, curr_proc->id, next_page);
                     }
-                    printf("Time: %.2f, Process: %c, Page: %d, InMemory: NO, Evicted: %s\n", 
-                           current_time, getProcessName(processes[i].id), next_page, evictedInfo);
+                    else
+                    {
+                        Page* free_page = getFreePage(plist);
+                        if(free_page == NULL)
+                        {
+                            printf("[DEBUG] No free page available for Process %d. Running FIFO replacement.\n", curr_proc->id);
+                            fifo(plist);
+                            free_page = getFreePage(plist);
+                        }
+
+                        if (free_page == NULL)
+                        {
+                            printf("[DEBUG] No free page found even after FIFO replacement. Skipping this reference.\n");
+                            continue;
+                        }
+
+                        free_page->process_id = curr_proc->id;
+                        free_page->page_num = next_page;
+                        free_page->brought_time = (float)(t + (0.1 * k));
+                        free_page->last_referenced = (float)(t + (0.1 * k));
+                        free_page->count = 1;
+                        swap_count++;
+                        miss_count++;
+
+                        printf("<%d, Process %d, Referenced Page %d, MISS, Evicted: (if needed)>\n",
+                               t, curr_proc->id, next_page);
+                    }
                 }
             }
-            
-            current_page = next_page;
-            current_time += 0.1;  // Advance simulation time by 0.1 seconds
-            
-            // (Optional) If you wish to stop the simulation at 60 seconds exactly:
-            // if (current_time >= TOTAL_DURATION) break;
         }
-        
-        // Process finished its service (or simulation run time expired)
-        printf("\n[EXIT] Time: %.2f, Process %c completed, Size: %d pages, Service Time: %d sec\n", 
-               current_time, getProcessName(processes[i].id), processes[i].num_pages, processes[i].service_time);
-        printMemoryMapCustom(plist);
-        
-        // Free the process's pages from memory
-        freeMemory(plist, processes[i].id);
-    }
-    
-    // Set output parameters for overall simulation statistics
-    *swaps = swapped_in;
-    int total_refs = hits + misses;
-    *hit_ratio = (total_refs > 0) ? ((float)hits / total_refs) : 0.0;
-    
-    printf("\n[FIFO Simulation Complete] Processes Swapped-In: %d, Total Page References: %d, Hit Ratio: %.5f\n", 
-           swapped_in, total_refs, *hit_ratio);
-}
 
+        for(int m = 0; m < track_idx; m++)
+        {
+            int curr_idx = (readyQueue->front + m) % readyQueue->capacity;
+            Process* curr_proc = &readyQueue->processes[curr_idx];
+
+            if(ifExistsInQueue(readyQueue, curr_proc->id))
+            {
+                int page_loaded = ifExistsInMemory(plist, curr_proc->id, curr_proc->starting_page_num);
+                if(!page_loaded)
+                {
+                    Page* free_page = getFreePage(plist);
+                    if(!free_page)
+                    {
+                        printf("[DEBUG] No free page found! Process %d is stalled.\n", curr_proc->id);
+                        continue;
+                    }
+
+                    free_page->process_id = curr_proc->id;
+                    free_page->page_num = curr_proc->starting_page_num;
+                    free_page->brought_time = (float)t;
+                    free_page->last_referenced = (float)t;
+                    free_page->count = 1;
+                    swap_count++;
+                }
+
+                if(curr_proc->service_time > 0)
+                {
+                    curr_proc->service_time -= 1;
+                }
+
+                if(curr_proc->service_time == 0)
+                {
+                    printf("[DEBUG] Process %d finished execution; freeing memory.\n", curr_proc->id);
+                    int temp_id = curr_proc->id;
+
+                    printf("<%d, Process %d, Exit, Size: %d, Service Duration: %d, Memory Map: ",
+                           t, curr_proc->id, curr_proc->num_pages, curr_proc->service_time);
+                    printMemoryMap(plist);
+                    printf(">\n");
+
+                    removeFromQueue(readyQueue, curr_proc);
+                    freeMemory(plist, temp_id);
+                }
+            }
+        }
+
+        if (t % 10 == 0)
+        {
+            printf("[DEBUG] Memory state at time %d seconds:\n", t);
+            printMemoryMap(plist);
+        }
+        usleep(900);
+    }
+
+    printf("[DEBUG] Final memory state at the end of the run:\n");
+    printMemoryMap(plist);
+
+    *swaps = swap_count;
+    *hit_ratio = (hit_count + miss_count) > 0 ? (float)hit_count / (hit_count + miss_count) : 0.0f;
+
+    printf("[DEBUG] Total number of successful swaps for FIFO: %d, hit ratio: %.2f\n", *swaps, *hit_ratio);
+    freeQueue(readyQueue);
+}
