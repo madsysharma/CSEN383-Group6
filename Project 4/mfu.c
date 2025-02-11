@@ -43,7 +43,7 @@ void mfu(PageList *plist)
 }
 
 // MFU simulation: runs for TOTAL_DURATION seconds and simulates page references
-void mfuSimulation(Process processes[], int numProcesses, PageList *plist, int *swapped_in, float *hit_ratio)
+void mfuSimulation(Process processes[], int numProcesses, PageList *plist, int* proc_swaps, int *total_swaps, float *hit_ratio)
 {
     if (plist == NULL || plist->head == NULL || processes == NULL)
     {
@@ -64,12 +64,6 @@ void mfuSimulation(Process processes[], int numProcesses, PageList *plist, int *
 
     for (int t = 0; t < TOTAL_DURATION; t++)
     {
-        if (readyQueue->size == 0)
-        {
-            printf("[DEBUG] All processes have finished execution. Printing statistics...\n");
-            break;
-        }
-
         // Check for new process arrivals
         while (track_idx < TOTAL_PROCESSES &&
                readyQueue->processes[(readyQueue->front + track_idx) % readyQueue->capacity].arrival_time <= t)
@@ -212,12 +206,14 @@ void mfuSimulation(Process processes[], int numProcesses, PageList *plist, int *
         usleep(900);
     }
 
+    printf("Run complete.\n");
     printf("[DEBUG] Final memory state at the end of the run:\n");
     printMemoryMap(plist);
 
-    *swapped_in = swap_count;
+    *proc_swaps = track_idx;
+    *total_swaps = swap_count;
     *hit_ratio = (hit_count + miss_count) > 0 ? (float)hit_count / (hit_count + miss_count) : 0.0f;
 
-    printf("[DEBUG] Total number of swaps for MFU: %d, hit ratio: %.2f\n", swap_count, *hit_ratio);
+    printf("[DEBUG] Number of processes successfully swapped in: %d, Total number of swaps for MFU: %d, hit ratio: %.2f\n", track_idx, swap_count, *hit_ratio);
     freeQueue(readyQueue);
 }

@@ -41,7 +41,7 @@ void lfu(PageList *plist)
 // It uses the LFU algorithm when no free page is available.
 // The simulation prints records for each memory reference and counts how many processes
 // were successfully swapped in.
-void lfuSimulation(Process processes[], int numProcesses, PageList *plist, int *swapped_in, float *hit_ratio)
+void lfuSimulation(Process processes[], int numProcesses, PageList *plist, int* proc_swaps, int *total_swaps, float *hit_ratio)
 {
     if (plist == NULL || plist->head == NULL || processes == NULL)
     {
@@ -51,7 +51,6 @@ void lfuSimulation(Process processes[], int numProcesses, PageList *plist, int *
     int swap_count = 0;               // Counts page swap events (page-ins)
     int hit_count = 0;                // Counts page hits
     int miss_count = 0;               // Counts page misses
-    int process_swapped_in_count = 0; // Counts processes that have been swapped in initially
     int track_idx = 0;                // Number of processes currently swapped in
 
     Queue *readyQueue = createQueue(numProcesses);
@@ -62,11 +61,6 @@ void lfuSimulation(Process processes[], int numProcesses, PageList *plist, int *
 
     for (int t = 0; t < TOTAL_DURATION; t++)
     {
-        if (readyQueue->size == 0)
-        {
-            printf("[DEBUG] All processes have finished execution. Printing statistics...\n");
-            break;
-        }
         // Check for new process arrivals; a process is swapped in if at least 4 free pages are available.
         while (track_idx < TOTAL_PROCESSES &&
                readyQueue->processes[(readyQueue->front + track_idx) % readyQueue->capacity].arrival_time <= t)
@@ -85,7 +79,6 @@ void lfuSimulation(Process processes[], int numProcesses, PageList *plist, int *
                     p->count = 1;
                     p->last_referenced = (float)(t * 1.0);
                     swap_count += 1;
-                    process_swapped_in_count += 1;
                 }
                 track_idx++;
                 // Print record for process entering memory (memory map printed as a placeholder)
@@ -238,10 +231,13 @@ void lfuSimulation(Process processes[], int numProcesses, PageList *plist, int *
         }
         usleep(900);
     }
+
+    printf("Run complete.\n");
     printf("[DEBUG] Final memory state at the end of the run:\n");
     printMemoryMap(plist);
-    *swapped_in = swap_count;
+    *proc_swaps = track_idx;
+    *total_swaps = swap_count;
     *hit_ratio = (hit_count + miss_count) > 0 ? (float)hit_count / (hit_count + miss_count) : 0.0f;
-    printf("[DEBUG] Total number of swaps for LFU: %d, hit ratio: %.2f\n", swap_count, *hit_ratio);
+    printf("[DEBUG] Number of processes successfully swapped in: %d, total number of swaps for LFU: %d, hit ratio: %.2f\n", track_idx, swap_count, *hit_ratio);
     freeQueue(readyQueue);
 }

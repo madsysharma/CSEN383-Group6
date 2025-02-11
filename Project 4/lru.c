@@ -42,7 +42,7 @@ void lru(PageList *plist)
 
 
 // This is the driver function for simulating LRU on a set of generated processes and an initialized free page list
-void lruSimulation(Process processes[], int numProcesses, PageList *plist, int* swaps, float* hit_ratio)
+void lruSimulation(Process processes[], int numProcesses, PageList *plist, int* proc_swaps, int *total_swaps, float* hit_ratio)
 {
 	if (plist == NULL || plist->head == NULL || processes == NULL) 
 	{
@@ -60,11 +60,6 @@ void lruSimulation(Process processes[], int numProcesses, PageList *plist, int* 
 	}
 	for(int t = 0; t < TOTAL_DURATION ; t++)
 	{
-		if(readyQueue->size == 0)
-		{
-			printf("[DEBUG] All processes have finished execution. Printing statistics...\n");
-			break;
-		}
 		while(track_idx < TOTAL_PROCESSES && readyQueue->processes[(readyQueue->front + track_idx) % (readyQueue->capacity)].arrival_time <= t)
 		{
 			int curr_idx = (readyQueue->front + track_idx) % (readyQueue->capacity);
@@ -210,10 +205,13 @@ void lruSimulation(Process processes[], int numProcesses, PageList *plist, int* 
 		}
 		usleep(900);
 	}
+
+	printf("Run complete.\n");
 	printf("[DEBUG] Memory state at the end of the run:\n");
-    printMemoryMap(plist); 
-	*swaps = swap_count;
+    	printMemoryMap(plist);
+    	*proc_swaps = track_idx; 
+	*total_swaps = swap_count;
 	*hit_ratio = (hit_count + miss_count) > 0 ? (float)hit_count / (hit_count + miss_count) : 0.0f;
-	printf("[DEBUG] Total number of swaps for LRU: %d, hit ratio: %.2f\n", *swaps, *hit_ratio);
+	printf("[DEBUG] Number of processes successfully swapped in: %d, Total number of swaps for LRU: %d, hit ratio: %.2f\n", track_idx, swap_count, *hit_ratio);
 	freeQueue(readyQueue);
 }

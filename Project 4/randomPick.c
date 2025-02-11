@@ -61,7 +61,7 @@ void randomPick(PageList *plist)
 
 // uses randomPick(...) whenever a page fault occurs and no free page is available.
 
-void randomPickSimulation(Process processes[], int numProcesses, PageList *plist, int* swaps, float* hit_ratio)
+void randomPickSimulation(Process processes[], int numProcesses, PageList *plist, int* proc_swaps, int *total_swaps, float* hit_ratio)
 {
     if (plist == NULL || plist->head == NULL || processes == NULL) 
     {
@@ -84,13 +84,6 @@ void randomPickSimulation(Process processes[], int numProcesses, PageList *plist
     // Loop over time from 0 up to TOTAL_DURATION seconds
     for(int t = 0; t < TOTAL_DURATION; t++)
     {
-        // If the queue is empty => all processes are done
-        if(readyQueue->size == 0)
-        {
-            printf("[DEBUG][RandomPickSim] All processes finished. Breaking...\n");
-            break;
-        }
-
         // admit new processes whose arrival_time <= t
         while(track_idx < numProcesses 
            && readyQueue->processes[(readyQueue->front + track_idx) % readyQueue->capacity].arrival_time <= t)
@@ -257,11 +250,13 @@ void randomPickSimulation(Process processes[], int numProcesses, PageList *plist
         usleep(900); // ~0.0009 seconds, just to slow the loop for readability
     }
 
+    printf("Run complete.\n");
     printf("[DEBUG][RandomPickSim] Final memory state:\n");
     printMemoryMap(plist); 
 
     // Compute stats
-    *swaps = swap_count;
+    *proc_swaps = track_idx;
+    *total_swaps = swap_count;
     int totalReferences = hit_count + miss_count;
     if (totalReferences > 0)
     {
@@ -271,7 +266,7 @@ void randomPickSimulation(Process processes[], int numProcesses, PageList *plist
     {
         *hit_ratio = 0.0f;
     }
-    printf("[DEBUG] Total number of swaps for Random Pick: %d, hit ratio: %.2f\n", *swaps, *hit_ratio);
+    printf("[DEBUG] Number of processes successfully swapped in: %d, total number of swaps for Random Pick: %d, hit ratio: %.2f\n", track_idx, swap_count, *hit_ratio);
 
     
     freeQueue(readyQueue);
