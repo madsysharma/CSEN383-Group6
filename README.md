@@ -62,7 +62,7 @@
 ### Compilation Instructions:
   ```bash
   gcc -o main *.c
-  ./main
+  ./main <insert queue size here>
   ```
 
 ## Project 4 - Paging and Swapping
