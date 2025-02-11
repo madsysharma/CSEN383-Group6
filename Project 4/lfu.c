@@ -12,9 +12,11 @@ void lfu(PageList *plist)
     Page *current = plist->head;
     Page *to_evict = NULL;
     int min_count = INT_MAX;
+
+    // For eviction, select the page with the lowest reference count
     while (current != NULL)
     {
-        if (current->process_id != -1 && current->count < min_count)
+        if (current->process_id != -1 && current->page_num != -1 && current->count < min_count)
         {
             min_count = current->count;
             to_evict = current;
@@ -237,6 +239,6 @@ void lfuSimulation(Process processes[], int numProcesses, PageList *plist, int *
     printMemoryMap(plist);
     *swapped_in = swap_count;
     *hit_ratio = (hit_count + miss_count) > 0 ? (float)hit_count / (hit_count + miss_count) : 0.0f;
-    printf("[DEBUG] Total number of sucessful swaps for LFU: %d, hit ratio: %.2f\n", swap_count, *hit_ratio);
+    printf("[DEBUG] Total number of swaps for LFU: %d, hit ratio: %.2f\n", swap_count, *hit_ratio);
     freeQueue(readyQueue);
 }

@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
         avg_fifo_hit_ratio += fifo_hit_ratios[k];
     }
     printf("-----------------------------------------------------------------------------------------------\n");
-    printf("FIFO Simulation: Average number of successful swaps = %.2f, average hit ratio = %.5f\n",
+    printf("FIFO Simulation: Average number of swaps = %.2f, average hit ratio = %.5f\n",
            (float)avg_fifo_swaps / runs, avg_fifo_hit_ratio / runs);
 
     int avg_lru_swaps = 0;
@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
         avg_lru_hit_ratio += lru_hit_ratios[k];
     }
     printf("-----------------------------------------------------------------------------------------------\n");
-    printf("LRU Simulation: Average number of successful swaps = %.2f, average hit ratio = %.5f\n",
+    printf("LRU Simulation: Average number of swaps = %.2f, average hit ratio = %.5f\n",
            (float)avg_lru_swaps / runs, avg_lru_hit_ratio / runs);
 
     int avg_lfu_swaps = 0;
@@ -151,7 +151,7 @@ int main(int argc, char *argv[])
         avg_lfu_hit_ratio += lfu_hit_ratios[k];
     }
     printf("-----------------------------------------------------------------------------------------------\n");
-    printf("LFU Simulation: Average number of successful swaps = %.2f, average hit ratio = %.5f\n",
+    printf("LFU Simulation: Average number of swaps = %.2f, average hit ratio = %.5f\n",
            (float)avg_lfu_swaps / runs, avg_lfu_hit_ratio / runs);
 
     int avg_rp_swaps = 0;
@@ -162,7 +162,7 @@ int main(int argc, char *argv[])
         avg_rp_hit_ratio += rp_hit_ratios[k];
     }
     printf("-----------------------------------------------------------------------------------------------\n");
-    printf("Random Pick Simulation: Average number of successful swaps = %.2f, average hit ratio = %.5f\n",
+    printf("Random Pick Simulation: Average number of swaps = %.2f, average hit ratio = %.5f\n",
            (float)avg_rp_swaps / runs, avg_rp_hit_ratio / runs);
 
     int avg_mfu_swaps = 0;
@@ -173,7 +173,7 @@ int main(int argc, char *argv[])
         avg_mfu_hit_ratio += mfu_hit_ratios[k];
     }
     printf("-----------------------------------------------------------------------------------------------\n");
-    printf("MFU Simulation: Average number of successful swaps = %.2f, average hit ratio = %.5f\n",
+    printf("MFU Simulation: Average number of swaps = %.2f, average hit ratio = %.5f\n",
         (float)avg_mfu_swaps / runs, avg_mfu_hit_ratio / runs);
 
     return 0;

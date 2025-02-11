@@ -28,7 +28,7 @@ void generateProcesses(Process *processes, int numProcesses)
 
 	// Sort processes by arrival time
 	qsort(processes, numProcesses, sizeof(Process), compareByArrivalTime);
-	printf("Processes generated and sorted");
+	printf("Processes generated and sorted.\n");
 }
 
 // Comparison function for qsort (sort by arrival time)
@@ -119,11 +119,9 @@ void removeFromQueue(Queue* q, Process* p)
 {
 	Queue* temp = createQueue(q->capacity);
 	int found = 0;
-	printf("[DEBUG] Queue before removing Process %d:\n", p->id);
 	for (int i = 0; i < q->size; i++) 
 	{
 		int idx = (q->front + i) % q->capacity;
-		printf("[DEBUG] Queue Process ID: %d\n", q->processes[idx].id);
 	}
 	while(!isQueueEmpty(q))
 	{
@@ -134,7 +132,6 @@ void removeFromQueue(Queue* q, Process* p)
 		}
 		else
 		{
-			printf("[DEBUG] Process %d found. Removing it.\n", p->id);
 			found = 1;
 		}
 	}
@@ -145,12 +142,6 @@ void removeFromQueue(Queue* q, Process* p)
 	while(!isQueueEmpty(temp))
 	{
 		enqueue(q,dequeue(temp));
-	}
-	printf("[DEBUG] Queue after removing Process %d:\n", p->id);
-	for (int i = 0; i < q->size; i++) 
-	{
-		int idx = (q->front + i) % q->capacity;
-		printf("[DEBUG] Queue Process ID: %d\n", q->processes[idx].id);
 	}
 	freeQueue(temp);
 }

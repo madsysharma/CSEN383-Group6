@@ -14,10 +14,10 @@ void mfu(PageList *plist)
     Page *to_evict = NULL;
     int max_count = -1;
 
-    // Find the page with the highest reference count
+    // For eviction, select the page with the highest reference count
     while (current != NULL)
     {
-        if (current->process_id != -1 && current->count > max_count)
+        if (current->process_id != -1 && current->page_num != -1 && current->count > max_count)
         {
             max_count = current->count;
             to_evict = current;
@@ -214,6 +214,6 @@ void mfuSimulation(Process processes[], int numProcesses, PageList *plist, int *
     *swapped_in = swap_count;
     *hit_ratio = (hit_count + miss_count) > 0 ? (float)hit_count / (hit_count + miss_count) : 0.0f;
 
-    printf("[DEBUG] Total number of successful swaps for MFU: %d, hit ratio: %.2f\n", swap_count, *hit_ratio);
+    printf("[DEBUG] Total number of swaps for MFU: %d, hit ratio: %.2f\n", swap_count, *hit_ratio);
     freeQueue(readyQueue);
 }

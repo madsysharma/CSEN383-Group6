@@ -262,7 +262,7 @@ void randomPickSimulation(Process processes[], int numProcesses, PageList *plist
     {
         *hit_ratio = 0.0f;
     }
-    printf("[DEBUG] Total number of sucessful swaps for Random Pick: %d, hit ratio: %.2f\n", *swaps, *hit_ratio);
+    printf("[DEBUG] Total number of swaps for Random Pick: %d, hit ratio: %.2f\n", *swaps, *hit_ratio);
 
     
     freeQueue(readyQueue);

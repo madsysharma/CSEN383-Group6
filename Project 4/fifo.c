@@ -1,6 +1,6 @@
 #include "helper.h"
 
-// FIFO page replacement: removes the oldest loaded page (the one brought into memory first)
+// FIFO page replacement: removes the page at the head of the free list (the one brought in first)
 void fifo(PageList *plist) 
 {
     if (plist == NULL || plist->head == NULL) 
@@ -9,18 +9,25 @@ void fifo(PageList *plist)
         exit(EXIT_FAILURE);
     }
 
-    Page* current = plist->head;
-    Page* to_evict = NULL;
-    float oldest_time = current->brought_time; // Track oldest page brought into memory
-
-    while (current != NULL) 
+    Page *to_evict = NULL;
+    
+    // For eviction, select the page that was brought in first, ie: the one at the head of the list
+    if (plist->head->process_id != -1 && plist->head->page_num != -1)
     {
-        if (current->brought_time < oldest_time) 
+        to_evict = plist->head;
+    }
+    else
+    {
+        Page* current = plist->head;
+        while (current != NULL)
         {
-            to_evict = current;
-            oldest_time = current->brought_time; // Find the page brought in first
+            if (current->process_id != -1 && current->page_num != -1)
+            {
+                to_evict = current;
+                break;
+            }
+            current = current->next;
         }
-        current = current->next;
     }
 
     if (to_evict == NULL) 
@@ -28,7 +35,6 @@ void fifo(PageList *plist)
         printf("[ERROR] No valid FIFO page found. Exiting...\n");
         return;
     }
-
     printf("[DEBUG] FIFO evicting Page %d from Process %d, Brought Time: %.2f\n", 
            to_evict->page_num, to_evict->process_id, to_evict->brought_time);
 
@@ -120,17 +126,22 @@ void fifoSimulation(Process processes[], int numProcesses, PageList *plist, int*
                         Page* free_page = getFreePage(plist);
                         if(free_page == NULL)
                         {
-                            printf("[DEBUG] No free page available for Process %d. Running FIFO replacement.\n", curr_proc->id);
+                            printf("[DEBUG] No free page available for Process %d. Running FIFO replacement. Page list is:\n", curr_proc->id);
+                            displayPages(plist);
                             fifo(plist);
+                            printf("[DEBUG] After invoking FIFO, the page list is:\n");
+                            displayPages(plist);
                             free_page = getFreePage(plist);
+                            if(free_page != NULL)
+                            {
+                                printf("[DEBUG] Free page found after FIFO!\n");
+                            }
+                            else
+                            {
+                                printf("[DEBUG] No free page found even after FIFO. Moving on...\n");
+                                continue;
+                            }
                         }
-
-                        if (free_page == NULL)
-                        {
-                            printf("[DEBUG] No free page found even after FIFO replacement. Skipping this reference.\n");
-                            continue;
-                        }
-
                         free_page->process_id = curr_proc->id;
                         free_page->page_num = next_page;
                         free_page->brought_time = (float)(t + (0.1 * k));
@@ -206,6 +217,6 @@ void fifoSimulation(Process processes[], int numProcesses, PageList *plist, int*
     *swaps = swap_count;
     *hit_ratio = (hit_count + miss_count) > 0 ? (float)hit_count / (hit_count + miss_count) : 0.0f;
 
-    printf("[DEBUG] Total number of successful swaps for FIFO: %d, hit ratio: %.2f\n", *swaps, *hit_ratio);
+    printf("[DEBUG] Total number of swaps for FIFO: %d, hit ratio: %.2f\n", *swaps, *hit_ratio);
     freeQueue(readyQueue);
 }
