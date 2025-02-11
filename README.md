@@ -64,3 +64,31 @@
   gcc -o main *.c
   ./main
   ```
+
+## Project 4 - Paging and Swapping
+
+### Files (present in the Code folder):
+1. `utils.h`:
+   - Contains the structures for Queue, Page, Process and Page List, and function declarations for queue creation and queue operations like enqueue and dequeue, as well as process creation, page list initialization, and other page helper functions.
+  
+2. `utils.c`:
+   - Implements the utility functions declared in utils.h
+  
+3. `main.c`:
+    - The main program containing all definitions and declarations for functions involved in the paging and swapping simulation.
+
+4. `helper.h`:
+    - Contains function prototypes for simulating page replacement algorithms during process execution.
+	
+5. `fifo.c`, `lru.c`, `lfu.c`, `randomPick.c` and `mfu.c`:
+    - Simulates the FIFO, LRU, LFU, Random Pick and MFU page replacement algorithms respectively.
+
+### How to Use:
+- Include `helper.h` in the main.c file.
+- Link all files with `.c` during compilation.
+
+### Compilation Instructions:
+  ```bash
+  gcc -g *.c -o main
+  ./main
+  ```
