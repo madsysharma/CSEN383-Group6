@@ -34,6 +34,9 @@ void lru(PageList *plist)
 
 	to_remove->process_id = -1;
 	to_remove->page_num = -1;
+	to_remove->last_referenced = 0.0f;
+	to_remove->count = 0;
+	to_remove->brought_time = 0.0f;
 }
 
 
@@ -71,13 +74,22 @@ void lruSimulation(Process processes[], int numProcesses, PageList *plist, int* 
             	// If pages are present, load into memory
 				printf("[DEBUG] At least four free pages found!\n");
 				Page *p = getFreePage(plist);
-				p->process_id = curr_proc->id;
-				p->page_num = curr_proc->starting_page_num;
-				p->brought_time = (float)(t * 1.0);
-				p->count = 1;
-				p->last_referenced = (float)(t * 1.0);
-				swap_count += 1;
+				if (p != NULL)
+				{
+					p->process_id = curr_proc->id;
+					p->page_num = curr_proc->starting_page_num;
+					p->brought_time = (float)(t * 1.0);
+					p->count = 1;
+					p->last_referenced = (float)(t * 1.0);
+					swap_count += 1;
+				}
 				track_idx += 1;
+				
+				// Print record for process entering memory (memory map printed as a placeholder)
+                printf("<%d, Process %d, Enter, Size: %d, Service Duration: %d, Memory Map: ",
+                       t, curr_proc->id, curr_proc->num_pages, curr_proc->service_time);
+                printMemoryMap(plist);
+                printf(">\n");
 			}
 			else
 			{
@@ -174,6 +186,11 @@ void lruSimulation(Process processes[], int numProcesses, PageList *plist, int* 
 						if (ifExistsInQueue(readyQueue, curr_proc->id)) {
 							printf("[DEBUG] Process %d is done, freeing memory from it.\n", curr_proc->id);
 							int temp_id = curr_proc->id;
+							// Print process exit record.
+                            printf("<%d, Process %d, Exit, Size: %d, Service Duration: %d, Memory Map: ",
+                                   t, curr_proc->id, curr_proc->num_pages, curr_proc->service_time);
+                            printMemoryMap(plist);
+                            printf(">\n");
 							removeFromQueue(readyQueue, curr_proc);
 							freeMemory(plist, temp_id);
 						}

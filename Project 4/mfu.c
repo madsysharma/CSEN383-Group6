@@ -38,7 +38,8 @@ void mfu(PageList *plist)
     to_evict->process_id = -1;
     to_evict->page_num = -1;
     to_evict->count = 0;
-    to_evict->last_referenced = 0.0;
+    to_evict->last_referenced = 0.0f;
+    to_evict->brought_time = 0.0f;
 }
 
 // MFU simulation: runs for TOTAL_DURATION seconds and simulates page references
@@ -80,12 +81,15 @@ void mfuSimulation(Process processes[], int numProcesses, PageList *plist, int *
             {
                 printf("[DEBUG] Found at least four free pages for Process %d!\n", curr_proc->id);
                 Page *p = getFreePage(plist);
-                p->process_id = curr_proc->id;
-                p->page_num = curr_proc->starting_page_num;
-                p->brought_time = (float)t;
-                p->last_referenced = (float)t;
-                p->count = 1;
-                swap_count++;
+                if (p != NULL)
+                {
+                    p->process_id = curr_proc->id;
+                    p->page_num = curr_proc->starting_page_num;
+                    p->brought_time = (float)(t * 1.0);
+                    p->count = 1;
+                    p->last_referenced = (float)(t * 1.0);
+                    swap_count += 1;
+                }
                 track_idx++;
 
                 printf("<%d, Process %d, Enter, Size: %d, Service Duration: %d, Memory Map: ",

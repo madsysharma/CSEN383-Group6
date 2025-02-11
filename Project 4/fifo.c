@@ -41,6 +41,9 @@ void fifo(PageList *plist)
     // Evict the page
     to_evict->process_id = -1;
     to_evict->page_num = -1;
+    to_evict->last_referenced = 0.0f;
+    to_evict->count = 0;
+    to_evict->brought_time = 0.0f;
 }
 
 // FIFO Simulation: follows the same structure as LRU and LFU simulations
@@ -80,14 +83,18 @@ void fifoSimulation(Process processes[], int numProcesses, PageList *plist, int*
             {
                 printf("[DEBUG] Found at least four free pages for Process %d!\n", curr_proc->id);
                 Page* p = getFreePage(plist);
-                p->process_id = curr_proc->id;
-                p->page_num = curr_proc->starting_page_num;
-                p->brought_time = (float)t;
-                p->last_referenced = (float)t;
-                p->count = 1;
-                swap_count++;
+                if (p != NULL)
+                {
+                    p->process_id = curr_proc->id;
+                    p->page_num = curr_proc->starting_page_num;
+                    p->brought_time = (float)(t * 1.0);
+                    p->count = 1;
+                    p->last_referenced = (float)(t * 1.0);
+                    swap_count += 1;
+                }
                 track_idx++;
 
+                // Print record for process entering memory (memory map printed as a placeholder)
                 printf("<%d, Process %d, Enter, Size: %d, Service Duration: %d, Memory Map: ", 
                        t, curr_proc->id, curr_proc->num_pages, curr_proc->service_time);
                 printMemoryMap(plist);

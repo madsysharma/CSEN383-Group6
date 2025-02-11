@@ -113,6 +113,11 @@ void randomPickSimulation(Process processes[], int numProcesses, PageList *plist
                     swap_count++;
                 }
                 track_idx++;
+                // Print record for process entering memory (memory map printed as a placeholder)
+                printf("<%d, Process %d, Enter, Size: %d, Service Duration: %d, Memory Map: ",
+                       t, curr_proc->id, curr_proc->num_pages, curr_proc->service_time);
+                printMemoryMap(plist);
+                printf(">\n");
             }
             else
             {
@@ -233,6 +238,10 @@ void randomPickSimulation(Process processes[], int numProcesses, PageList *plist
                     // Do we need to check if the process is in queue????
                     printf("[DEBUG][RandomPickSim] Process %d finished, freeing memory.\n", curr_proc->id);
                     int done_pid = curr_proc->id;
+                    // Print process exit record.
+                    printf("<%d, Process %d, Exit, Size: %d, Service Duration: %d, Memory Map: ", t, curr_proc->id, curr_proc->num_pages, curr_proc->service_time);
+                    printMemoryMap(plist);
+                    printf(">\n");
                     removeFromQueue(readyQueue, curr_proc);
                     freeMemory(plist, done_pid);
                 }
