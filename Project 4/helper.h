@@ -23,5 +23,5 @@ void lfuSimulation(Process processes[], int numProcesses, PageList *plist, int *
 void randomPick(PageList* plist);
 void randomPickSimulation(Process processes[], int numProcesses, PageList* plist, int* swaps, float* hit_ratio);
 
-Page* fifo(PageList *plist);
-void fifoSimulation(Process processes[],int numProcesses,PageList *plist,int *swaps, float *hit_ratio);
+void fifo(PageList *plist);
+void fifoSimulation(Process processes[], int numProcesses, PageList *plist, int* swaps, float* hit_ratio);
