@@ -1,5 +1,5 @@
 # CSEN 383 - Group 6 - Projects
-## Project 2 - Process Scheduling Utilities and FCFS Implementation
+## Project 2 - Process Scheduling
 
 ### Files:
 1. `process_utils.h`:
