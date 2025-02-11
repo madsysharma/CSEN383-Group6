@@ -37,6 +37,9 @@ int main(int argc, char *argv[])
     int fifo_total_swaps[5] = {0, 0, 0, 0, 0};
     float fifo_hit_ratios[5] = {0.0, 0.0, 0.0, 0.0, 0.0};
 
+    int mfu_total_swaps[5] = {0, 0, 0, 0, 0};
+    float mfu_hit_ratios[5] = {0.0, 0.0, 0.0, 0.0, 0.0};
+
     for (int i = 0; i < runs; i++)
     {
         printf("RUN #%d\n", i + 1);
@@ -98,6 +101,19 @@ int main(int argc, char *argv[])
         free(rpProcesses);
         freePageList(rp_plist);
 
+        // ---------------- MFU Simulation ----------------
+        Process *mfuProcesses = (Process *)malloc(TOTAL_PROCESSES * sizeof(Process));
+        copyProcesses(mfuProcesses, processes, TOTAL_PROCESSES);
+        PageList *mfu_plist = (PageList *)malloc(sizeof(PageList));
+        initPageList(mfu_plist);
+        int mfu_run_swaps = 0;
+        float mfu_run_ratio = 0.0;
+        mfuSimulation(mfuProcesses, TOTAL_PROCESSES, mfu_plist, &mfu_run_swaps, &mfu_run_ratio);
+        mfu_total_swaps[i] = mfu_run_swaps;
+        mfu_hit_ratios[i] = mfu_run_ratio;
+        free(mfuProcesses);
+        freePageList(mfu_plist);
+
         free(processes);
         printf("\n");
     }
@@ -148,6 +164,17 @@ int main(int argc, char *argv[])
     printf("-----------------------------------------------------------------------------------------------\n");
     printf("Random Pick Simulation: Average number of successful swaps = %.2f, average hit ratio = %.5f\n",
            (float)avg_rp_swaps / runs, avg_rp_hit_ratio / runs);
+
+    int avg_mfu_swaps = 0;
+    float avg_mfu_hit_ratio = 0.0;
+    for (int k = 0; k < runs; k++)
+    {
+        avg_mfu_swaps += mfu_total_swaps[k];
+        avg_mfu_hit_ratio += mfu_hit_ratios[k];
+    }
+    printf("-----------------------------------------------------------------------------------------------\n");
+    printf("MFU Simulation: Average number of successful swaps = %.2f, average hit ratio = %.5f\n",
+        (float)avg_mfu_swaps / runs, avg_mfu_hit_ratio / runs);
 
     return 0;
 }
