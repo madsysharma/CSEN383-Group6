@@ -104,10 +104,7 @@ int main(void) {
                     fd_set readfds;
                     FD_ZERO(&readfds);
                     FD_SET(0, &readfds);
-                    struct timeval tv;
-                    tv.tv_sec = 1;  // Wait up to 1 second for input.
-                    tv.tv_usec = 0;
-                    int ret = select(1, &readfds, NULL, NULL, &tv);
+                    int ret = select(1, &readfds, NULL, NULL, NULL);
                     if (ret < 0) {
                         perror("select in child 5");
                         break;
@@ -199,7 +196,6 @@ int main(void) {
                         char *line = strtok_r(buffer, "\n", &saveptr);
                         while (line != NULL) {
                             fprintf(outfile, "%s %s\n", parent_time, line);
-                            printf("%s %s\n", parent_time, line);
                             line = strtok_r(NULL, "\n", &saveptr);
                         }
                         fflush(outfile);
